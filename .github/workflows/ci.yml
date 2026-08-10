@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: stripe_test
+          POSTGRES_USER: default
+          POSTGRES_PASSWORD: qwerty123
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U default -d stripe_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: "req*.txt"
+
+      - name: Install dependencies
+        run: pip install -r req.txt -r req-dev.txt
+
+      - name: Lint (ruff)
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Type check (mypy)
+        run: mypy payments config
+
+      - name: Run tests
+        env:
+          TEST_DATABASE_HOST: 127.0.0.1
+          TEST_DATABASE_PORT: 5434
+          TEST_DATABASE_USER: default
+          TEST_DATABASE_PASSWORD: qwerty123
+          TEST_DATABASE_DB: stripe_test
+        run: pytest
