@@ -1,0 +1,69 @@
+import pytest
+
+from payments.domain.entities.payment_attempts import (
+    PaymentAttempt,
+    PaymentAttemptStatus,
+)
+from payments.domain.exceptions import EntityNotFoundError
+
+
+@pytest.mark.django_db
+def test_get_by_id_not_found(payment_attempt_repo, call):
+    with pytest.raises(EntityNotFoundError):
+        call(payment_attempt_repo.get_by_id)(9999)
+
+
+@pytest.mark.django_db
+def test_save_create_assigns_id(
+    payment_attempt_repo,
+    payment,
+    payment_provider,
+    call,
+):
+    entity = PaymentAttempt(provider=payment_provider, payment=payment)
+    assert entity.id is None
+
+    call(payment_attempt_repo.save)(entity)
+
+    assert entity.id is not None
+
+
+@pytest.mark.django_db
+def test_get_by_id_returns_full_aggregate(
+    payment_attempt_repo,
+    payment_attempt,
+    call,
+):
+    assert payment_attempt.id is not None
+    loaded = call(payment_attempt_repo.get_by_id)(payment_attempt.id)
+
+    assert loaded.id == payment_attempt.id
+    assert loaded.status is PaymentAttemptStatus.CREATED
+    assert loaded.provider.id == payment_attempt.provider.id
+    assert loaded.payment.id == payment_attempt.payment.id
+    assert loaded.payment.order.id == payment_attempt.payment.order.id
+
+
+@pytest.mark.django_db
+def test_get_by_payment_id(payment_attempt_repo, payment_attempt, payment, call):
+    assert payment.id is not None
+    attempts = call(payment_attempt_repo.get_by_payment_id)(payment.id)
+
+    assert len(attempts) == 1
+    assert attempts[0].id == payment_attempt.id
+
+
+@pytest.mark.django_db
+def test_save_persists_status_and_completed_at(
+    payment_attempt_repo,
+    payment_attempt,
+    call,
+):
+    assert payment_attempt.id is not None
+    payment_attempt.mark_succeeded()
+
+    call(payment_attempt_repo.save)(payment_attempt)
+
+    loaded = call(payment_attempt_repo.get_by_id)(payment_attempt.id)
+    assert loaded.status is PaymentAttemptStatus.SUCCEEDED
+    assert loaded.completed_at is not None

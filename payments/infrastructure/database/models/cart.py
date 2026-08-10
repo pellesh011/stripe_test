@@ -26,6 +26,11 @@ class CartModel(models.Model):
 
 
 class CartItemModel(models.Model):
+    cart = models.ForeignKey(
+        CartModel,
+        on_delete=models.PROTECT,
+        related_name="items",
+    )
     product = models.ForeignKey(
         ProductModel,
         on_delete=models.PROTECT,

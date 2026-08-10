@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 
 from payments.domain.entities.payment import Payment
@@ -36,7 +36,7 @@ class PaymentAttempt:
         self.provider = provider
         self.payment = payment
         self.status = status
-        self.created_at = datetime.now()
+        self.created_at = datetime.now(UTC)
         self.completed_at = None
 
     @classmethod
@@ -71,7 +71,7 @@ class PaymentAttempt:
             PaymentAttemptStatus.FAILED,
             PaymentAttemptStatus.CANCELLED,
         }:
-            self.completed_at = datetime.now()
+            self.completed_at = datetime.now(UTC)
 
     def mark_processing(self) -> None:
         self._set_status(PaymentAttemptStatus.PROCESSING)

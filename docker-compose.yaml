@@ -31,3 +31,20 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     volumes:
       - ./data:/var/lib/postgresql/data
+
+  db-test:
+    image: postgres:16-alpine
+    container_name: db-test
+    ports:
+      - "5434:5432"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DATABASE_DB}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - stripe_test_data:/var/lib/postgresql/data
+
+volumes:
+  stripe_test_data:
