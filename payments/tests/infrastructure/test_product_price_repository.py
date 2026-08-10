@@ -1,0 +1,78 @@
+from decimal import Decimal
+
+import pytest
+
+from payments.domain.entities.currency import Currencies
+from payments.domain.entities.product_price import ProductPrice
+from payments.domain.exceptions import EntityNotFoundError
+
+
+@pytest.mark.django_db
+def test_get_by_id(product_price_repo, product_price, call):
+    assert product_price.id is not None
+    loaded = call(product_price_repo.get_by_id)(product_price.id)
+    assert loaded.id == product_price.id
+    assert loaded.price == Decimal("10.00")
+    assert loaded.product.id == product_price.product.id
+    assert loaded.currency.currency == Currencies.EUR
+    assert loaded.is_active is True
+
+
+@pytest.mark.django_db
+def test_get_by_id_not_found(product_price_repo, call):
+    with pytest.raises(EntityNotFoundError):
+        call(product_price_repo.get_by_id)(9999)
+
+
+@pytest.mark.django_db
+def test_get_active(product_price_repo, product_price, product, currency, call):
+    inactive = ProductPrice(currency=currency, price=Decimal("5.00"), product=product)
+    inactive.set_active(False)
+    call(product_price_repo.save)(inactive)
+
+    active = call(product_price_repo.get_active)()
+    active_ids = {item.id for item in active}
+
+    assert product_price.id in active_ids
+    assert inactive.id not in active_ids
+
+
+@pytest.mark.django_db
+def test_get_active_by_product_id(product_price_repo, product_price, call):
+    assert product_price.product.id is not None
+    loaded = call(product_price_repo.get_active_by_product_id)(product_price.product.id)
+    assert loaded.id == product_price.id
+
+
+@pytest.mark.django_db
+def test_get_active_by_product_id_not_found(
+    product_price_repo,
+    inactive_product,
+    call,
+):
+    assert inactive_product.id is not None
+    with pytest.raises(EntityNotFoundError):
+        call(product_price_repo.get_active_by_product_id)(inactive_product.id)
+
+
+@pytest.mark.django_db
+def test_save_create_assigns_id(product_price_repo, product, currency, call):
+    entity = ProductPrice(currency=currency, price=Decimal("3.99"), product=product)
+    assert entity.id is None
+
+    call(product_price_repo.save)(entity)
+
+    assert entity.id is not None
+
+
+@pytest.mark.django_db
+def test_save_update(product_price_repo, product_price, call):
+    assert product_price.id is not None
+    product_price.price = Decimal("12.50")
+    product_price.set_active(False)
+
+    call(product_price_repo.save)(product_price)
+
+    loaded = call(product_price_repo.get_by_id)(product_price.id)
+    assert loaded.price == Decimal("12.50")
+    assert loaded.is_active is False
