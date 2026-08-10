@@ -3,7 +3,11 @@ from enum import Enum
 
 from payments.domain.entities.cart_item import CartItem
 from payments.domain.entities.currency import Currency
-from payments.domain.exceptions import CartItemNotFoundError, CartNotActiveError, ProductCurrencyError
+from payments.domain.exceptions import (
+    CartItemNotFoundError,
+    CartNotActiveError,
+    ProductCurrencyError,
+)
 
 
 class CartStatus(Enum):
@@ -37,8 +41,8 @@ class Cart:
         for index, current_item in enumerate(self.items):
             if item.id == current_item.id:
                 del self.items[index]
-                return 
-            
+                return
+
         raise CartItemNotFoundError()
 
     @classmethod
@@ -47,7 +51,7 @@ class Cart:
         currency: Currency,
         items: list[CartItem],
         status: CartStatus,
-    ) -> "Cart":
+    ) -> Cart:
         cart = cls(currency)
 
         cart.items = items

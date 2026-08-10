@@ -49,7 +49,7 @@ class PaymentAttempt:
         status: PaymentAttemptStatus,
         created_at: datetime,
         completed_at: datetime | None,
-    ) -> "PaymentAttempt":
+    ) -> PaymentAttempt:
         attempt = cls(
             provider=provider,
             payment=payment,
@@ -76,14 +76,11 @@ class PaymentAttempt:
     def mark_processing(self) -> None:
         self._set_status(PaymentAttemptStatus.PROCESSING)
 
-
     def mark_succeeded(self) -> None:
         self._set_status(PaymentAttemptStatus.SUCCEEDED)
 
-
     def mark_failed(self) -> None:
         self._set_status(PaymentAttemptStatus.FAILED)
-
 
     def mark_cancelled(self) -> None:
         self._set_status(PaymentAttemptStatus.CANCELLED)

@@ -9,8 +9,10 @@ class ProductCurrencyError(Exception):
 class ProductNameError(Exception):
     pass
 
+
 class ProductPriceNotActiveError(Exception):
     pass
+
 
 class ProductNotActiveError(Exception):
     pass
@@ -19,8 +21,10 @@ class ProductNotActiveError(Exception):
 class CartNotActiveError(Exception):
     pass
 
+
 class CartItemNotFoundError(Exception):
     pass
+
 
 class InvalidPaymentStatusTransition(Exception):
     pass

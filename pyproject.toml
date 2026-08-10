@@ -1,6 +1,6 @@
 [tool.pytest.ini_options]
 testpaths = [
-    "tests",
+    "payments/tests",
 ]
 
 norecursedirs = [
@@ -9,3 +9,43 @@ norecursedirs = [
     ".venv",
     "__pycache__",
 ]
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+exclude = [
+    "data",
+    ".venv",
+    "**/migrations/*",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "C4",
+    "SIM",
+    "RUF",
+]
+ignore = [
+    "RUF012",
+    "RUF032",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"payments/models.py" = ["F401"]
+"**/__init__.py" = ["F401"]
+
+[tool.mypy]
+python_version = "3.14"
+plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings"

@@ -2,9 +2,10 @@ from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 
-from payments.domain.entities.currency import Currencies, Currency
+from payments.domain.entities.currency import Currency
 from payments.domain.entities.order import Order
 from payments.domain.exceptions import InvalidPaymentStatusTransition
+
 
 class PaymentStatus(Enum):
     CREATED = "created"
@@ -13,6 +14,7 @@ class PaymentStatus(Enum):
     FAILED = "failed"
     CANCELLED = "cancelled"
     REFUNDED = "refunded"
+
 
 @dataclass
 class Payment:
@@ -23,7 +25,14 @@ class Payment:
     currency: Currency
     status: PaymentStatus
 
-    def __init__(self, order: Order, amount: Decimal, currency: Currency, user = None, id: int|None = None):
+    def __init__(
+        self,
+        order: Order,
+        amount: Decimal,
+        currency: Currency,
+        user=None,
+        id: int | None = None,
+    ):
         self.order = order
         self.amount = amount
         self.currency = currency
@@ -59,5 +68,7 @@ class Payment:
         self.status = status
 
     @classmethod
-    def restore(cls,id: int, order: Order, amount: Decimal, currency: Currency, user = None) -> Payment:
-        return cls( id=id, order=order, amount=amount,currency=currency, user=user)
+    def restore(
+        cls, id: int, order: Order, amount: Decimal, currency: Currency, user=None
+    ) -> Payment:
+        return cls(id=id, order=order, amount=amount, currency=currency, user=user)

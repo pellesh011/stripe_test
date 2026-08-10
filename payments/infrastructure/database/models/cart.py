@@ -2,8 +2,10 @@ from django.db import models
 
 from payments.infrastructure.database.models.currency import CurrencyModel
 from payments.infrastructure.database.models.enums import CartStatusChoices
-from payments.infrastructure.database.models.product import ProductModel, ProductPriceModel
-
+from payments.infrastructure.database.models.product import (
+    ProductModel,
+    ProductPriceModel,
+)
 
 
 class CartModel(models.Model):
@@ -21,6 +23,7 @@ class CartModel(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True,
     )
+
 
 class CartItemModel(models.Model):
     product = models.ForeignKey(

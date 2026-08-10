@@ -6,6 +6,7 @@ from payments.domain.entities.order import OrderStatus
 from payments.domain.entities.payment import PaymentStatus
 from payments.domain.entities.payment_attempts import PaymentAttemptStatus
 
+
 class CurrencyChoices(models.TextChoices):
     USD = Currencies.USD.value, "USD"
     RUB = Currencies.RUB.value, "RUB"
