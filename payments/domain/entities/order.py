@@ -5,8 +5,10 @@ from payments.domain.entities.cart import Cart
 from payments.domain.entities.currency import Currency
 from payments.domain.entities.order_item import OrderItem
 
+
 class ProdoctCurrencyError(Exception):
     pass
+
 
 class OrderStatus(Enum):
     CREATED = "created"
@@ -17,6 +19,7 @@ class OrderStatus(Enum):
     COMPLETED = "completed"
     CANCELLED = "cancelled"
     REFUNDED = "refunded"
+
 
 @dataclass
 class Order:

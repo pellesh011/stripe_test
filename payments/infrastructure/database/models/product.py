@@ -2,11 +2,10 @@ from django.db import models
 
 from payments.infrastructure.database.models.currency import CurrencyModel
 
+
 class ProductModel(models.Model):
-    name = models.CharField(
-        max_length=255,
-        unique=True
-    )
+    name = models.CharField(max_length=255, unique=True)
+
 
 class ProductPriceModel(models.Model):
     currency = models.ForeignKey(
@@ -23,9 +22,7 @@ class ProductPriceModel(models.Model):
     )
 
     product = models.ForeignKey(
-        ProductModel, 
-        on_delete=models.PROTECT,
-        related_name="prices"
+        ProductModel, on_delete=models.PROTECT, related_name="prices"
     )
 
     class Meta:

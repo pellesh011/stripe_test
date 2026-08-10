@@ -1,7 +1,5 @@
 from django.db import models
 
-from payments.infrastructure.database.models.cart import CartModel
-from payments.infrastructure.database.models.currency import CurrencyModel
 from payments.infrastructure.database.models.enums import OrderStatusChoices
 
 
@@ -27,6 +25,7 @@ class OrderModel(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True,
     )
+
 
 class OrderItemModel(models.Model):
     order = models.ForeignKey(

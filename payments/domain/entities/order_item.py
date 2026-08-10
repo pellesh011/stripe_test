@@ -17,7 +17,7 @@ class OrderItem:
         id: int,
         product: Product,
         product_price: ProductPrice,
-    ) -> "OrderItem":
+    ) -> OrderItem:
         return cls(
             id=id,
             product=product,
