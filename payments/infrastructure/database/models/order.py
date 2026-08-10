@@ -16,6 +16,14 @@ class OrderModel(models.Model):
         related_name="orders",
     )
 
+    discount = models.ForeignKey(
+        "DiscountModel",
+        on_delete=models.PROTECT,
+        related_name="orders",
+        null=True,
+        blank=True,
+    )
+
     status = models.CharField(
         max_length=30,
         choices=OrderStatusChoices,
