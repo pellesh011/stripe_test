@@ -23,16 +23,18 @@ class OrderStatus(Enum):
 
 @dataclass
 class Order:
+    id: int | None
     currency: Currency
     items: list[OrderItem]
     status: OrderStatus
     cart: Cart
 
-    def __init__(self, currency: Currency, cart: Cart):
+    def __init__(self, currency: Currency, cart: Cart, id: int | None = None):
         self.currency = currency
         self.items = []
         self.status = OrderStatus.CREATED
         self.cart = cart
+        self.id = id
 
     def add(self, item: OrderItem):
         if item.product_price.currency != self.currency.currency:

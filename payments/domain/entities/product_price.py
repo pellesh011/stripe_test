@@ -5,16 +5,24 @@ from payments.domain.entities.product import Product
 
 
 class ProductPrice:
+    id: int | None
     currency: Currency
     price: Decimal
     product: Product
     is_active: bool
 
-    def __init__(self, currency: Currency, price: Decimal, product: Product):
+    def __init__(
+        self,
+        currency: Currency,
+        price: Decimal,
+        product: Product,
+        id: int | None = None,
+    ):
         self.currency = currency
         self.price = price
         self.is_active = True
         self.product = product
+        self.id = id
 
     def set_active(self, is_active: bool) -> bool:
         self.is_active = is_active
