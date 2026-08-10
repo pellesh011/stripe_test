@@ -5,6 +5,9 @@ from payments.infrastructure.database.models.cart import (
 from payments.infrastructure.database.models.currency import (
     CurrencyModel,
 )
+from payments.infrastructure.database.models.discount import (
+    DiscountModel,
+)
 from payments.infrastructure.database.models.order import (
     OrderItemModel,
     OrderModel,

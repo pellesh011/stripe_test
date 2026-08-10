@@ -2,6 +2,14 @@ class CurrencyValueError(Exception):
     pass
 
 
+class DiscountNameError(Exception):
+    pass
+
+
+class DiscountValueError(Exception):
+    pass
+
+
 class ProductCurrencyError(Exception):
     pass
 
