@@ -3,6 +3,8 @@ from django.db import models
 from payments.domain.entities.cart import CartStatus
 from payments.domain.entities.currency import Currencies
 from payments.domain.entities.order import OrderStatus
+from payments.domain.entities.payment import PaymentStatus
+from payments.domain.entities.payment_attempts import PaymentAttemptStatus
 
 class CurrencyChoices(models.TextChoices):
     USD = Currencies.USD.value, "USD"
@@ -27,3 +29,20 @@ class CartStatusChoices(models.TextChoices):
     CONVERTED = CartStatus.CONVERTED.value, "Converted"
     ABANDONED = CartStatus.ABANDONED.value, "Abandoned"
     EXPIRED = CartStatus.EXPIRED.value, "Expired"
+
+
+class PaymentStatusChoices(models.TextChoices):
+    CREATED = PaymentStatus.CREATED.value, "Created"
+    PENDING = PaymentStatus.PENDING.value, "Pending"
+    PAID = PaymentStatus.PAID.value, "Paid"
+    FAILED = PaymentStatus.FAILED.value, "Failed"
+    CANCELLED = PaymentStatus.CANCELLED.value, "Cancelled"
+    REFUNDED = PaymentStatus.REFUNDED.value, "Refunded"
+
+
+class PaymentAttemptStatusChoices(models.TextChoices):
+    CREATED = PaymentAttemptStatus.CREATED.value, "Created"
+    PROCESSING = PaymentAttemptStatus.PROCESSING.value, "Processing"
+    SUCCEEDED = PaymentAttemptStatus.SUCCEEDED.value, "Succeeded"
+    FAILED = PaymentAttemptStatus.FAILED.value, "Failed"
+    CANCELLED = PaymentAttemptStatus.CANCELLED.value, "Cancelled"

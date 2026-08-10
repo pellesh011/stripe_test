@@ -16,3 +16,15 @@ from payments.infrastructure.database.models.order import (
     OrderModel,
     OrderItemModel,
 )
+
+from payments.infrastructure.database.models.payment_provider import (
+    PaymentProviderModel,
+)
+
+from payments.infrastructure.database.models.payment import (
+    PaymentModel,
+)
+
+from payments.infrastructure.database.models.payment_attempt import (
+    PaymentAttemptModel,
+)

@@ -21,3 +21,6 @@ class CartNotActiveError(Exception):
 
 class CartItemNotFoundError(Exception):
     pass
+
+class InvalidPaymentStatusTransition(Exception):
+    pass

@@ -23,7 +23,7 @@ class Product:
         self.name = name
         return 
 
-    @staticmethod
-    def restore( id: int, name: str, is_active: bool) -> Product:
-        return Product(name, is_active, id)
+    @classmethod
+    def restore(cls, id: int, name: str, is_active: bool) -> Product:
+        return cls(name, is_active, id)
         
