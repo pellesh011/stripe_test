@@ -3,6 +3,7 @@ from decimal import Decimal
 from payments.domain.entities.currency import Currency
 from payments.domain.entities.product import Product
 
+
 class ProductPrice:
     currency: Currency
     price: Decimal
@@ -19,6 +20,6 @@ class ProductPrice:
         self.is_active = is_active
         return self.is_active
 
-    def get_price(self, currency: Currency|None) -> int:
-        _currency  = currency or self.currency
+    def get_price(self, currency: Currency | None) -> int:
+        _currency = currency or self.currency
         return int(self.price * _currency.coef * 100)

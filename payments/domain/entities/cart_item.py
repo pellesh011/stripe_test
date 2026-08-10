@@ -10,7 +10,9 @@ class CartItem:
     product: Product
     product_price: ProductPrice
 
-    def __init__(self, product: Product, product_price: ProductPrice, id: int|None = None):
+    def __init__(
+        self, product: Product, product_price: ProductPrice, id: int | None = None
+    ):
         self.product = product
         self.product_price = product_price
         self.id = id
@@ -22,7 +24,7 @@ class CartItem:
         id: int,
         product: Product,
         product_price: ProductPrice,
-    ) -> "CartItem":
+    ) -> CartItem:
         return cls(
             id=id,
             product=product,
