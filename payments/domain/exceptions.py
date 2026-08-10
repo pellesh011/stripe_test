@@ -28,3 +28,7 @@ class CartItemNotFoundError(Exception):
 
 class InvalidPaymentStatusTransition(Exception):
     pass
+
+
+class EntityNotFoundError(Exception):
+    pass

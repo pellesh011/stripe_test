@@ -35,3 +35,13 @@ class Currency:
 
         if self.base_currency == self.currency and self.coef != 1:
             raise CurrencyValueError()
+
+    @classmethod
+    def restore(
+        cls,
+        currency: Currencies,
+        coef: Decimal,
+        is_active: bool,
+        id: int | None = None,
+    ) -> Currency:
+        return cls(currency=currency, coef=coef, is_active=is_active, id=id)

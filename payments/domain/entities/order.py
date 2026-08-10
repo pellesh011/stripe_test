@@ -40,3 +40,19 @@ class Order:
         if item.product_price.currency != self.currency.currency:
             raise ProdoctCurrencyError()
         self.items.append(item)
+
+    @classmethod
+    def restore(
+        cls,
+        currency: Currency,
+        cart: Cart,
+        items: list[OrderItem],
+        status: OrderStatus,
+        id: int | None = None,
+    ) -> Order:
+        order = cls(currency=currency, cart=cart, id=id)
+
+        order.items = items
+        order.status = status
+
+        return order
