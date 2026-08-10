@@ -3,6 +3,9 @@ testpaths = [
     "payments/tests",
 ]
 
+DJANGO_SETTINGS_MODULE = "config.test_settings"
+addopts = "--no-migrations"
+
 norecursedirs = [
     "data",
     ".git",
@@ -38,6 +41,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "payments/models.py" = ["F401"]
 "**/__init__.py" = ["F401"]
+"config/test_settings.py" = ["F403", "F405"]
 
 [tool.mypy]
 python_version = "3.14"

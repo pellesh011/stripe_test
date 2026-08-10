@@ -20,14 +20,16 @@ class CartStatus(Enum):
 
 @dataclass
 class Cart:
+    id: int | None
     currency: Currency
     items: list[CartItem]
     status: CartStatus
 
-    def __init__(self, currency: Currency):
+    def __init__(self, currency: Currency, id: int | None = None):
         self.status = CartStatus.ACTIVE
         self.currency = currency
         self.items = []
+        self.id = id
 
     def add(self, item: CartItem):
         if item.product_price.currency.currency != self.currency.currency:
@@ -51,8 +53,9 @@ class Cart:
         currency: Currency,
         items: list[CartItem],
         status: CartStatus,
+        id: int | None = None,
     ) -> Cart:
-        cart = cls(currency)
+        cart = cls(currency, id=id)
 
         cart.items = items
         cart.status = status

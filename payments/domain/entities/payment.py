@@ -69,6 +69,14 @@ class Payment:
 
     @classmethod
     def restore(
-        cls, id: int, order: Order, amount: Decimal, currency: Currency, user=None
+        cls,
+        id: int,
+        order: Order,
+        amount: Decimal,
+        currency: Currency,
+        status: PaymentStatus,
+        user=None,
     ) -> Payment:
-        return cls(id=id, order=order, amount=amount, currency=currency, user=user)
+        payment = cls(id=id, order=order, amount=amount, currency=currency, user=user)
+        payment.status = status
+        return payment

@@ -5,6 +5,9 @@ from payments.infrastructure.database.models.currency import CurrencyModel
 
 class ProductModel(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    is_active = models.BooleanField(
+        default=True,
+    )
 
 
 class ProductPriceModel(models.Model):
