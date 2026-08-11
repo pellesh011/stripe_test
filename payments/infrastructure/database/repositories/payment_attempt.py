@@ -17,6 +17,7 @@ PAYMENT_ATTEMPT_SELECT_RELATED = (
     "payment__currency",
     "payment__order__cart__currency",
     "payment__order__currency",
+    "payment__order__discount",
 )
 
 

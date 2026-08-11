@@ -6,6 +6,7 @@ from asgiref.sync import async_to_sync
 from payments.domain.entities.cart import Cart
 from payments.domain.entities.cart_item import CartItem
 from payments.domain.entities.currency import Currencies, Currency
+from payments.domain.entities.discount import Discount, DiscountType
 from payments.domain.entities.order import Order
 from payments.domain.entities.order_item import OrderItem
 from payments.domain.entities.payment import Payment
@@ -19,6 +20,9 @@ from payments.infrastructure.database.repositories.cart_item import (
 )
 from payments.infrastructure.database.repositories.currency import (
     CurrencyRepositoryImpl,
+)
+from payments.infrastructure.database.repositories.discount import (
+    DiscountRepositoryImpl,
 )
 from payments.infrastructure.database.repositories.order import OrderRepositoryImpl
 from payments.infrastructure.database.repositories.order_item import (
@@ -49,6 +53,11 @@ def call():
 @pytest.fixture
 def currency_repo() -> CurrencyRepositoryImpl:
     return CurrencyRepositoryImpl()
+
+
+@pytest.fixture
+def discount_repo() -> DiscountRepositoryImpl:
+    return DiscountRepositoryImpl()
 
 
 @pytest.fixture
@@ -104,6 +113,29 @@ def currency(currency_repo, db, call) -> Currency:
 
 
 @pytest.fixture
+def discount(discount_repo, db, call) -> Discount:
+    entity = Discount(
+        name="Test Discount",
+        type=DiscountType.PERCENTAGE,
+        value=Decimal("10.00"),
+    )
+    call(discount_repo.save)(entity)
+    return entity
+
+
+@pytest.fixture
+def inactive_discount(discount_repo, db, call) -> Discount:
+    entity = Discount(
+        name="Inactive Discount",
+        type=DiscountType.FIXED,
+        value=Decimal("5.00"),
+        is_active=False,
+    )
+    call(discount_repo.save)(entity)
+    return entity
+
+
+@pytest.fixture
 def product(product_repo, db, call) -> Product:
     entity = Product(name="Test Product", is_active=True)
     call(product_repo.save)(entity)
@@ -146,8 +178,8 @@ def cart_item(cart_item_repo, cart, product, product_price, db, call) -> CartIte
 
 
 @pytest.fixture
-def order(order_repo, cart, currency, db, call) -> Order:
-    entity = Order(currency=currency, cart=cart)
+def order(order_repo, cart, currency, discount, db, call) -> Order:
+    entity = Order(currency=currency, cart=cart, discount=discount)
     call(order_repo.save)(entity)
     return entity
 

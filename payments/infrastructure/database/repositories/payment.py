@@ -8,6 +8,7 @@ PAYMENT_SELECT_RELATED = (
     "currency",
     "order__cart__currency",
     "order__currency",
+    "order__discount",
 )
 
 

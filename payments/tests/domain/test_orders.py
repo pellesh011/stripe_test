@@ -4,6 +4,7 @@ import pytest
 
 from payments.domain.entities.cart import Cart
 from payments.domain.entities.currency import Currencies, Currency
+from payments.domain.entities.discount import Discount, DiscountType
 from payments.domain.entities.order import Order, OrderStatus
 from payments.domain.entities.order_item import OrderItem
 from payments.domain.entities.product import Product
@@ -20,6 +21,20 @@ def test_order_create():
     assert test_order.items == []
     assert test_order.cart == test_cart
     assert test_order.currency == test_currency
+    assert test_order.discount is None
+
+
+def test_order_create_with_discount():
+    test_currency = Currency(currency=Currencies.USD, coef=Decimal(1.0))
+    test_cart = Cart(currency=test_currency)
+    test_discount = Discount(
+        name="Test Discount",
+        type=DiscountType.PERCENTAGE,
+        value=Decimal("10.00"),
+    )
+    test_order = Order(currency=test_currency, cart=test_cart, discount=test_discount)
+
+    assert test_order.discount == test_discount
 
 
 def test_order_add_order_item():
@@ -68,6 +83,11 @@ def test_order_add_different_currencies_order_item():
 def test_order_restore():
     test_currency = Currency(currency=Currencies.USD, coef=Decimal(1.0))
     test_cart = Cart(currency=test_currency)
+    test_discount = Discount(
+        name="Test Discount",
+        type=DiscountType.PERCENTAGE,
+        value=Decimal("10.00"),
+    )
 
     test_product = Product("test name", True)
     test_product_price = ProductPrice(
@@ -80,6 +100,7 @@ def test_order_restore():
         cart=test_cart,
         items=[test_order_item],
         status=OrderStatus.PAID,
+        discount=test_discount,
         id=1,
     )
 
@@ -87,3 +108,4 @@ def test_order_restore():
     assert restored.items == [test_order_item]
     assert restored.status == OrderStatus.PAID
     assert restored.cart == test_cart
+    assert restored.discount == test_discount

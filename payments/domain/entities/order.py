@@ -3,6 +3,7 @@ from enum import Enum
 
 from payments.domain.entities.cart import Cart
 from payments.domain.entities.currency import Currency
+from payments.domain.entities.discount import Discount
 from payments.domain.entities.order_item import OrderItem
 from payments.domain.exceptions import ProductCurrencyError
 
@@ -25,12 +26,20 @@ class Order:
     items: list[OrderItem]
     status: OrderStatus
     cart: Cart
+    discount: Discount | None
 
-    def __init__(self, currency: Currency, cart: Cart, id: int | None = None):
+    def __init__(
+        self,
+        currency: Currency,
+        cart: Cart,
+        discount: Discount | None = None,
+        id: int | None = None,
+    ):
         self.currency = currency
         self.items = []
         self.status = OrderStatus.CREATED
         self.cart = cart
+        self.discount = discount
         self.id = id
 
     def add(self, item: OrderItem):
@@ -45,9 +54,10 @@ class Order:
         cart: Cart,
         items: list[OrderItem],
         status: OrderStatus,
+        discount: Discount | None = None,
         id: int | None = None,
     ) -> Order:
-        order = cls(currency=currency, cart=cart, id=id)
+        order = cls(currency=currency, cart=cart, discount=discount, id=id)
 
         order.items = items
         order.status = status

@@ -13,6 +13,7 @@ class OrderRepositoryImpl(OrderRepository):
             model = await OrderModel.objects.select_related(
                 "cart__currency",
                 "currency",
+                "discount",
             ).aget(id=id)
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
@@ -22,10 +23,14 @@ class OrderRepositoryImpl(OrderRepository):
         assert order.cart.id is not None
         assert order.currency.id is not None
 
+        if order.discount is not None:
+            assert order.discount.id is not None
+
         if order.id is None:
             model = await OrderModel.objects.acreate(
                 cart_id=order.cart.id,
                 currency_id=order.currency.id,
+                discount_id=order.discount.id if order.discount is not None else None,
                 status=order.status.value,
             )
             order.id = model.id
@@ -33,5 +38,6 @@ class OrderRepositoryImpl(OrderRepository):
             await OrderModel.objects.filter(id=order.id).aupdate(
                 cart_id=order.cart.id,
                 currency_id=order.currency.id,
+                discount_id=order.discount.id if order.discount is not None else None,
                 status=order.status.value,
             )

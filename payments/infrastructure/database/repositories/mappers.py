@@ -1,6 +1,7 @@
 from payments.domain.entities.cart import Cart, CartStatus
 from payments.domain.entities.cart_item import CartItem
 from payments.domain.entities.currency import Currencies, Currency
+from payments.domain.entities.discount import Discount, DiscountType
 from payments.domain.entities.order import Order, OrderStatus
 from payments.domain.entities.order_item import OrderItem
 from payments.domain.entities.payment import Payment, PaymentStatus
@@ -13,6 +14,7 @@ from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
 from payments.infrastructure.database.models.cart import CartItemModel, CartModel
 from payments.infrastructure.database.models.currency import CurrencyModel
+from payments.infrastructure.database.models.discount import DiscountModel
 from payments.infrastructure.database.models.order import OrderItemModel, OrderModel
 from payments.infrastructure.database.models.payment import PaymentModel
 from payments.infrastructure.database.models.payment_attempt import (
@@ -31,6 +33,16 @@ def currency_to_entity(model: CurrencyModel) -> Currency:
     return Currency.restore(
         currency=Currencies(model.currency),
         coef=model.coef,
+        is_active=model.is_active,
+        id=model.id,
+    )
+
+
+def discount_to_entity(model: DiscountModel) -> Discount:
+    return Discount.restore(
+        name=model.name,
+        type=DiscountType(model.type),
+        value=model.value,
         is_active=model.is_active,
         id=model.id,
     )
@@ -84,11 +96,15 @@ def order_to_entity(
     cart: Cart,
     items: list[OrderItem],
 ) -> Order:
+    discount = (
+        discount_to_entity(model.discount) if model.discount is not None else None
+    )
     return Order.restore(
         currency=currency_to_entity(model.currency),
         cart=cart,
         items=items,
         status=OrderStatus(model.status),
+        discount=discount,
         id=model.id,
     )
 
