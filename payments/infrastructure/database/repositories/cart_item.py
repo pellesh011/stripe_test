@@ -20,13 +20,15 @@ class CartItemRepositoryImpl(CartItemRepository):
             raise EntityNotFoundError() from None
         return cart_item_to_entity(model)
 
-    async def get_by_cart_id(self, cart_id: int) -> list[CartItem]:
-        return [
-            cart_item_to_entity(model)
-            async for model in CartItemModel.objects.filter(
-                cart_id=cart_id
-            ).select_related(*CART_ITEM_SELECT_RELATED)
-        ]
+    async def get_by_cart_id(
+        self, cart_id: int, limit: int = 10, offset: int = 0
+    ) -> list[CartItem]:
+        qs = (
+            CartItemModel.objects.filter(cart_id=cart_id)
+            .select_related(*CART_ITEM_SELECT_RELATED)
+            .order_by("id")[offset : offset + limit]
+        )
+        return [cart_item_to_entity(model) async for model in qs]
 
     async def save(self, cart_item: CartItem) -> None:
         if cart_item.cart is None:

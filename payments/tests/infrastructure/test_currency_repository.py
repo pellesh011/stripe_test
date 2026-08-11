@@ -39,6 +39,24 @@ def test_get_active(currency_repo, currency, call):
 
 
 @pytest.mark.django_db
+def test_get_active_pagination_limit_and_offset(currency_repo, currency, call):
+    for enum in (Currencies.RUB, Currencies.USD):
+        entity = Currency(currency=enum, coef=Decimal("1.00"))
+        call(currency_repo.save)(entity)
+
+    first_page = call(currency_repo.get_active)(limit=2, offset=0)
+    second_page = call(currency_repo.get_active)(limit=2, offset=2)
+
+    assert len(first_page) == 2
+    assert len(second_page) == 1
+
+    first_ids = {item.id for item in first_page}
+    second_ids = {item.id for item in second_page}
+    assert first_ids.isdisjoint(second_ids)
+    assert currency.id in first_ids | second_ids
+
+
+@pytest.mark.django_db
 def test_get_active_by_code(currency_repo, currency, call):
     loaded = call(currency_repo.get_active_by_code)(Currencies.EUR)
     assert loaded.currency == Currencies.EUR

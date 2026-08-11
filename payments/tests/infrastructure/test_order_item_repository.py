@@ -56,6 +56,31 @@ def test_get_by_order_id(order_item_repo, order_item, order, call):
 
 
 @pytest.mark.django_db
+def test_get_by_order_id_pagination_limit_and_offset(
+    order_item_repo,
+    order_item,
+    order,
+    product,
+    product_price,
+    call,
+):
+    for _ in range(2):
+        entity = OrderItem(product=product, product_price=product_price, order=order)
+        call(order_item_repo.save)(entity)
+
+    assert order.id is not None
+    first_page = call(order_item_repo.get_by_order_id)(order.id, limit=2, offset=0)
+    second_page = call(order_item_repo.get_by_order_id)(order.id, limit=2, offset=2)
+
+    assert len(first_page) == 2
+    assert len(second_page) == 1
+
+    first_ids = {item.id for item in first_page}
+    second_ids = {item.id for item in second_page}
+    assert first_ids.isdisjoint(second_ids)
+
+
+@pytest.mark.django_db
 def test_get_by_order_id_filters_by_order(
     order_item_repo,
     order_repo,

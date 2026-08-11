@@ -55,6 +55,31 @@ def test_get_by_cart_id(cart_item_repo, cart_item, cart, call):
 
 
 @pytest.mark.django_db
+def test_get_by_cart_id_pagination_limit_and_offset(
+    cart_item_repo,
+    cart_item,
+    cart,
+    product,
+    product_price,
+    call,
+):
+    for _ in range(2):
+        entity = CartItem(product=product, product_price=product_price, cart=cart)
+        call(cart_item_repo.save)(entity)
+
+    assert cart.id is not None
+    first_page = call(cart_item_repo.get_by_cart_id)(cart.id, limit=2, offset=0)
+    second_page = call(cart_item_repo.get_by_cart_id)(cart.id, limit=2, offset=2)
+
+    assert len(first_page) == 2
+    assert len(second_page) == 1
+
+    first_ids = {item.id for item in first_page}
+    second_ids = {item.id for item in second_page}
+    assert first_ids.isdisjoint(second_ids)
+
+
+@pytest.mark.django_db
 def test_get_by_cart_id_filters_by_cart(
     cart_item_repo,
     cart_repo,

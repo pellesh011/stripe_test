@@ -15,11 +15,11 @@ class DiscountRepositoryImpl(DiscountRepository):
             raise EntityNotFoundError() from None
         return discount_to_entity(model)
 
-    async def get_active(self) -> list[Discount]:
-        return [
-            discount_to_entity(model)
-            async for model in DiscountModel.objects.filter(is_active=True)
+    async def get_active(self, limit: int = 10, offset: int = 0) -> list[Discount]:
+        qs = DiscountModel.objects.filter(is_active=True).order_by("id")[
+            offset : offset + limit
         ]
+        return [discount_to_entity(model) async for model in qs]
 
     async def save(self, discount: Discount) -> None:
         if discount.id is None:

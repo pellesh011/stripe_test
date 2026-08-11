@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from payments.domain.entities.currency import Currencies
+from payments.domain.entities.currency import Currencies, Currency
 from payments.domain.entities.product_price import ProductPrice
 from payments.domain.exceptions import EntityNotFoundError
 
@@ -35,6 +35,32 @@ def test_get_active(product_price_repo, product_price, product, currency, call):
 
     assert product_price.id in active_ids
     assert inactive.id not in active_ids
+
+
+@pytest.mark.django_db
+def test_get_active_pagination_limit_and_offset(
+    product_price_repo,
+    currency_repo,
+    product,
+    product_price,
+    call,
+):
+    for enum in (Currencies.RUB, Currencies.USD):
+        cur = Currency(currency=enum, coef=Decimal("1.00"))
+        call(currency_repo.save)(cur)
+        entity = ProductPrice(currency=cur, price=Decimal("5.00"), product=product)
+        call(product_price_repo.save)(entity)
+
+    first_page = call(product_price_repo.get_active)(limit=2, offset=0)
+    second_page = call(product_price_repo.get_active)(limit=2, offset=2)
+
+    assert len(first_page) == 2
+    assert len(second_page) == 1
+
+    first_ids = {item.id for item in first_page}
+    second_ids = {item.id for item in second_page}
+    assert first_ids.isdisjoint(second_ids)
+    assert product_price.id in first_ids | second_ids
 
 
 @pytest.mark.django_db

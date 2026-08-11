@@ -20,13 +20,15 @@ class OrderItemRepositoryImpl(OrderItemRepository):
             raise EntityNotFoundError() from None
         return order_item_to_entity(model)
 
-    async def get_by_order_id(self, order_id: int) -> list[OrderItem]:
-        return [
-            order_item_to_entity(model)
-            async for model in OrderItemModel.objects.filter(
-                order_id=order_id
-            ).select_related(*CART_ITEM_SELECT_RELATED)
-        ]
+    async def get_by_order_id(
+        self, order_id: int, limit: int = 10, offset: int = 0
+    ) -> list[OrderItem]:
+        qs = (
+            OrderItemModel.objects.filter(order_id=order_id)
+            .select_related(*CART_ITEM_SELECT_RELATED)
+            .order_by("id")[offset : offset + limit]
+        )
+        return [order_item_to_entity(model) async for model in qs]
 
     async def save(self, order_item: OrderItem) -> None:
         if order_item.order is None:

@@ -22,13 +22,13 @@ class ProductPriceRepositoryImpl(ProductPriceRepository):
             raise EntityNotFoundError() from None
         return product_price_to_entity(model)
 
-    async def get_active(self) -> list[ProductPrice]:
-        return [
-            product_price_to_entity(model)
-            async for model in ProductPriceModel.objects.filter(
-                is_active=True
-            ).select_related("currency", "product")
-        ]
+    async def get_active(self, limit: int = 10, offset: int = 0) -> list[ProductPrice]:
+        qs = (
+            ProductPriceModel.objects.filter(is_active=True)
+            .select_related("currency", "product")
+            .order_by("id")[offset : offset + limit]
+        )
+        return [product_price_to_entity(model) async for model in qs]
 
     async def get_active_by_product_id(self, product_id: int) -> ProductPrice:
         try:

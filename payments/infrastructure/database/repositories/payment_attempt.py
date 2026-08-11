@@ -31,13 +31,15 @@ class PaymentAttemptRepositoryImpl(PaymentAttemptRepository):
             raise EntityNotFoundError() from None
         return await self._to_entity(model)
 
-    async def get_by_payment_id(self, payment_id: int) -> list[PaymentAttempt]:
-        return [
-            await self._to_entity(model)
-            async for model in PaymentAttemptModel.objects.filter(
-                payment_id=payment_id
-            ).select_related(*PAYMENT_ATTEMPT_SELECT_RELATED)
-        ]
+    async def get_by_payment_id(
+        self, payment_id: int, limit: int = 10, offset: int = 0
+    ) -> list[PaymentAttempt]:
+        qs = (
+            PaymentAttemptModel.objects.filter(payment_id=payment_id)
+            .select_related(*PAYMENT_ATTEMPT_SELECT_RELATED)
+            .order_by("id")[offset : offset + limit]
+        )
+        return [await self._to_entity(model) async for model in qs]
 
     async def _to_entity(self, model: PaymentAttemptModel) -> PaymentAttempt:
         provider = payment_provider_to_entity(model.provider)
