@@ -89,7 +89,7 @@ def test_get_by_cart_id_filters_by_cart(
     product_price,
     call,
 ):
-    other_cart = Cart(currency=cart.currency)
+    other_cart = Cart()
     call(cart_repo.save)(other_cart)
 
     other_item = CartItem(product=product, product_price=product_price, cart=other_cart)

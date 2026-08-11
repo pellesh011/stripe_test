@@ -10,8 +10,8 @@ from payments.domain.entities.product_price import ProductPrice
 
 def test_order_item_create():
     test_currency = Currency(currency=Currencies.USD, coef=Decimal("1.0"))
-    test_cart = Cart(currency=test_currency)
-    test_order = Order(currency=test_currency, cart=test_cart)
+    test_cart = Cart()
+    test_order = Order(currency=Currencies.USD, cart=test_cart)
 
     test_product = Product("test name", True)
     test_product_price = ProductPrice(
@@ -28,9 +28,8 @@ def test_order_item_create():
 
 
 def test_order_item_restore():
-    test_currency = Currency(currency=Currencies.USD, coef=Decimal("1.0"))
-    test_cart = Cart(currency=test_currency)
-    test_order = Order(currency=test_currency, cart=test_cart)
+    test_cart = Cart()
+    test_order = Order(currency=Currencies.USD, cart=test_cart)
 
     test_product = Product("test name", True)
     test_product_price = ProductPrice(

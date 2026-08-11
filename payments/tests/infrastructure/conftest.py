@@ -166,8 +166,8 @@ def payment_provider(payment_provider_repo, db, call) -> PaymentProvider:
 
 
 @pytest.fixture
-def cart(cart_repo, currency, db, call) -> Cart:
-    entity = Cart(currency=currency)
+def cart(cart_repo, db, call) -> Cart:
+    entity = Cart()
     call(cart_repo.save)(entity)
     return entity
 
@@ -180,8 +180,8 @@ def cart_item(cart_item_repo, cart, product, product_price, db, call) -> CartIte
 
 
 @pytest.fixture
-def order(order_repo, cart, currency, discount, db) -> Order:
-    entity = Order(currency=currency, cart=cart, discount=discount)
+def order(order_repo, cart, discount, db) -> Order:
+    entity = Order(currency=Currencies.EUR, cart=cart, discount=discount)
     order_repo.save(entity)
     return entity
 

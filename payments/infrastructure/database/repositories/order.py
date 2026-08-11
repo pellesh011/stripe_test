@@ -11,8 +11,7 @@ class OrderRepositoryImpl(OrderRepository):
     def get_by_id(self, id: int) -> Order:
         try:
             model = OrderModel.objects.select_related(
-                "cart__currency",
-                "currency",
+                "cart",
                 "discount",
             ).get(id=id)
         except ObjectDoesNotExist:
@@ -21,7 +20,6 @@ class OrderRepositoryImpl(OrderRepository):
 
     def save(self, order: Order) -> None:
         assert order.cart.id is not None
-        assert order.currency.id is not None
 
         if order.discount is not None:
             assert order.discount.id is not None
@@ -29,7 +27,7 @@ class OrderRepositoryImpl(OrderRepository):
         if order.id is None:
             model = OrderModel.objects.create(
                 cart_id=order.cart.id,
-                currency_id=order.currency.id,
+                currency=order.currency.value,
                 discount_id=order.discount.id if order.discount is not None else None,
                 status=order.status.value,
             )
@@ -37,7 +35,7 @@ class OrderRepositoryImpl(OrderRepository):
         else:
             OrderModel.objects.filter(id=order.id).update(
                 cart_id=order.cart.id,
-                currency_id=order.currency.id,
+                currency=order.currency.value,
                 discount_id=order.discount.id if order.discount is not None else None,
                 status=order.status.value,
             )

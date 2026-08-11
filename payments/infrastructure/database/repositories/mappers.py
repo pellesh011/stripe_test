@@ -84,7 +84,6 @@ def order_item_to_entity(model: OrderItemModel) -> OrderItem:
 
 def cart_to_entity(model: CartModel, items: list[CartItem]) -> Cart:
     return Cart.restore(
-        currency=currency_to_entity(model.currency),
         items=items,
         status=CartStatus(model.status),
         id=model.id,
@@ -100,7 +99,7 @@ def order_to_entity(
         discount_to_entity(model.discount) if model.discount is not None else None
     )
     return Order.restore(
-        currency=currency_to_entity(model.currency),
+        currency=Currencies(model.currency),
         cart=cart,
         items=items,
         status=OrderStatus(model.status),

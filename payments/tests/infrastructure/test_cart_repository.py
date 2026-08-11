@@ -11,8 +11,8 @@ def test_get_by_id_not_found(cart_repo, call):
 
 
 @pytest.mark.django_db
-def test_save_create_assigns_id(cart_repo, currency, call):
-    entity = Cart(currency=currency)
+def test_save_create_assigns_id(cart_repo, call):
+    entity = Cart()
     assert entity.id is None
 
     call(cart_repo.save)(entity)
@@ -21,12 +21,11 @@ def test_save_create_assigns_id(cart_repo, currency, call):
 
 
 @pytest.mark.django_db
-def test_get_by_id_returns_cart_with_currency(cart_repo, cart, call):
+def test_get_by_id_returns_cart(cart_repo, cart, call):
     assert cart.id is not None
     loaded = call(cart_repo.get_by_id)(cart.id)
 
     assert loaded.id == cart.id
-    assert loaded.currency.currency == cart.currency.currency
     assert loaded.items == []
     assert loaded.status is CartStatus.ACTIVE
 

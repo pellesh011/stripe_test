@@ -15,8 +15,7 @@ from payments.infrastructure.database.repositories.mappers import (
 PAYMENT_ATTEMPT_SELECT_RELATED = (
     "provider",
     "payment__currency",
-    "payment__order__cart__currency",
-    "payment__order__currency",
+    "payment__order__cart",
     "payment__order__discount",
 )
 
