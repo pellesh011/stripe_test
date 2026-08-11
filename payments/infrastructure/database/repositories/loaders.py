@@ -22,7 +22,6 @@ from payments.infrastructure.database.repositories.mappers import (
 
 CART_ITEM_SELECT_RELATED = (
     "product",
-    "product_price__currency",
     "product_price__product",
 )
 

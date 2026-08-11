@@ -150,8 +150,10 @@ def inactive_product(product_repo, db, call) -> Product:
 
 
 @pytest.fixture
-def product_price(product_price_repo, product, currency, db, call) -> ProductPrice:
-    entity = ProductPrice(currency=currency, price=Decimal("10.00"), product=product)
+def product_price(product_price_repo, product, db, call) -> ProductPrice:
+    entity = ProductPrice(
+        currency=Currencies.EUR, price=Decimal("10.00"), product=product
+    )
     call(product_price_repo.save)(entity)
     return entity
 

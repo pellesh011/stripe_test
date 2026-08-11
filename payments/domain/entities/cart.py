@@ -32,7 +32,7 @@ class Cart:
         self.id = id
 
     def add(self, item: CartItem):
-        if item.product_price.currency.currency != self.currency.currency:
+        if item.product_price.currency != self.currency.currency:
             raise ProductCurrencyError()
         self.items.append(item)
 

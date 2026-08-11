@@ -58,7 +58,7 @@ def product_to_entity(model: ProductModel) -> Product:
 
 def product_price_to_entity(model: ProductPriceModel) -> ProductPrice:
     return ProductPrice.restore(
-        currency=currency_to_entity(model.currency),
+        currency=Currencies(model.currency),
         price=model.price,
         product=product_to_entity(model.product),
         is_active=model.is_active,

@@ -15,7 +15,7 @@ def test_order_item_create():
 
     test_product = Product("test name", True)
     test_product_price = ProductPrice(
-        currency=test_currency, price=Decimal("100.10"), product=test_product
+        currency=Currencies.USD, price=Decimal("100.10"), product=test_product
     )
     test_order_item = OrderItem(
         product=test_product, product_price=test_product_price, order=test_order
@@ -24,7 +24,7 @@ def test_order_item_create():
     assert test_order_item.product == test_product
     assert test_order_item.product_price == test_product_price
     assert test_order_item.order == test_order
-    assert test_order_item.product_price.get_price(None) == 10010
+    assert test_order_item.product_price.get_price(test_currency) == 10010
 
 
 def test_order_item_restore():
@@ -34,7 +34,7 @@ def test_order_item_restore():
 
     test_product = Product("test name", True)
     test_product_price = ProductPrice(
-        currency=test_currency, price=Decimal("100.10"), product=test_product
+        currency=Currencies.USD, price=Decimal("100.10"), product=test_product
     )
 
     restored = OrderItem.restore(

@@ -44,13 +44,13 @@ def test_order_add_order_item():
 
     test_product = Product("test name", True)
     test_product_price = ProductPrice(
-        currency=test_currency, price=Decimal(100.10), product=test_product
+        currency=Currencies.USD, price=Decimal(100.10), product=test_product
     )
     test_order_item = OrderItem(product=test_product, product_price=test_product_price)
 
     test_product_2 = Product("test name 2", True)
     test_product_price_2 = ProductPrice(
-        currency=test_currency, price=Decimal(101.10), product=test_product_2
+        currency=Currencies.USD, price=Decimal(101.10), product=test_product_2
     )
     test_order_item_2 = OrderItem(
         product=test_product_2, product_price=test_product_price_2
@@ -67,10 +67,9 @@ def test_order_add_different_currencies_order_item():
     test_cart = Cart(currency=test_currency)
     test_order = Order(currency=test_currency, cart=test_cart)
 
-    other_currency = Currency(currency=Currencies.EUR, coef=Decimal(1.1))
     test_product = Product("test name", True)
     test_product_price = ProductPrice(
-        currency=other_currency, price=Decimal(100.10), product=test_product
+        currency=Currencies.EUR, price=Decimal(100.10), product=test_product
     )
     test_order_item = OrderItem(product=test_product, product_price=test_product_price)
 
@@ -91,7 +90,7 @@ def test_order_restore():
 
     test_product = Product("test name", True)
     test_product_price = ProductPrice(
-        currency=test_currency, price=Decimal(100.10), product=test_product
+        currency=Currencies.USD, price=Decimal(100.10), product=test_product
     )
     test_order_item = OrderItem(product=test_product, product_price=test_product_price)
 
