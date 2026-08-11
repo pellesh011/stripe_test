@@ -82,6 +82,67 @@ def test_get_active_by_product_id_not_found(
 
 
 @pytest.mark.django_db
+def test_get_active_by_product_ids_filters_by_currency(
+    product_price_repo,
+    currency_repo,
+    product,
+    product_price,
+    call,
+):
+    assert product.id is not None
+    rub = Currency(currency=Currencies.RUB, coef=Decimal("1.00"))
+    call(currency_repo.save)(rub)
+    rub_price = ProductPrice(currency=rub, price=Decimal("5.00"), product=product)
+    call(product_price_repo.save)(rub_price)
+
+    prices = call(product_price_repo.get_active_by_product_ids)(
+        [product.id],
+        currency=Currencies.RUB,
+    )
+
+    assert [price.id for price in prices] == [rub_price.id]
+
+
+@pytest.mark.django_db
+def test_get_active_by_product_ids_returns_active_only(
+    product_price_repo,
+    currency_repo,
+    product,
+    product_price,
+    call,
+):
+    assert product.id is not None
+    rub = Currency(currency=Currencies.RUB, coef=Decimal("1.00"))
+    call(currency_repo.save)(rub)
+    inactive = ProductPrice(currency=rub, price=Decimal("5.00"), product=product)
+    inactive.set_active(False)
+    call(product_price_repo.save)(inactive)
+
+    prices = call(product_price_repo.get_active_by_product_ids)([product.id])
+
+    assert [price.id for price in prices] == [product_price.id]
+
+
+@pytest.mark.django_db
+def test_get_active_by_product_ids_multiple_products(
+    product_price_repo,
+    currency_repo,
+    product,
+    product_price,
+    call,
+):
+    rub = Currency(currency=Currencies.RUB, coef=Decimal("1.00"))
+    call(currency_repo.save)(rub)
+    second_price = ProductPrice(currency=rub, price=Decimal("7.00"), product=product)
+    call(product_price_repo.save)(second_price)
+
+    assert product.id is not None
+    prices = call(product_price_repo.get_active_by_product_ids)([product.id])
+
+    assert {price.id for price in prices} == {product_price.id, second_price.id}
+
+
+@pytest.mark.django_db
 def test_save_create_assigns_id(product_price_repo, product, currency, call):
     entity = ProductPrice(currency=currency, price=Decimal("3.99"), product=product)
     assert entity.id is None

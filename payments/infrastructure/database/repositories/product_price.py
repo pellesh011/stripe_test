@@ -1,5 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 
+from payments.domain.entities.currency import Currencies
 from payments.domain.entities.product_price import ProductPrice
 from payments.domain.exceptions import EntityNotFoundError
 from payments.domain.repositories.product_price import ProductPriceRepository
@@ -43,6 +44,19 @@ class ProductPriceRepositoryImpl(ProductPriceRepository):
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
         return product_price_to_entity(model)
+
+    async def get_active_by_product_ids(
+        self,
+        product_ids: list[int],
+        currency: Currencies | None = None,
+    ) -> list[ProductPrice]:
+        qs = ProductPriceModel.objects.filter(
+            product_id__in=product_ids,
+            is_active=True,
+        ).select_related("currency", "product")
+        if currency is not None:
+            qs = qs.filter(currency__currency=currency.value)
+        return [product_price_to_entity(model) async for model in qs]
 
     async def save(self, product_price: ProductPrice) -> None:
         assert product_price.product.id is not None
