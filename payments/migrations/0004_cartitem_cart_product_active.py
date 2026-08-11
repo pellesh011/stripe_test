@@ -5,7 +5,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("payments", "0003_seed_test_data"),
+        ("payments", "0002_paymentprovidermodel_paymentmodel_and_more"),
     ]
 
     operations = [

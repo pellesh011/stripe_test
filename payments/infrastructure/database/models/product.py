@@ -1,6 +1,6 @@
 from django.db import models
 
-from payments.infrastructure.database.models.currency import CurrencyModel
+from payments.infrastructure.database.models.enums import CurrencyChoices
 
 
 class ProductModel(models.Model):
@@ -11,10 +11,10 @@ class ProductModel(models.Model):
 
 
 class ProductPriceModel(models.Model):
-    currency = models.ForeignKey(
-        CurrencyModel,
-        on_delete=models.PROTECT,
-        related_name="product_prices",
+    currency = models.CharField(
+        max_length=3,
+        choices=CurrencyChoices,
+        default=CurrencyChoices.USD,
     )
     price = models.DecimalField(
         max_digits=12,

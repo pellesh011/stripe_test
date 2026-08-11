@@ -11,8 +11,8 @@ from payments.domain.exceptions import InvalidPaymentStatusTransition
 
 def make_payment() -> Payment:
     test_currency = Currency(currency=Currencies.USD, coef=Decimal(1.0))
-    test_cart = Cart(currency=test_currency)
-    test_order = Order(currency=test_currency, cart=test_cart)
+    test_cart = Cart()
+    test_order = Order(currency=Currencies.USD, cart=test_cart)
     return Payment(order=test_order, amount=Decimal("10.00"), currency=test_currency)
 
 
@@ -37,8 +37,8 @@ def payment_in_state(status: PaymentStatus) -> Payment:
 
 def test_payment_create():
     test_currency = Currency(currency=Currencies.USD, coef=Decimal(1.0))
-    test_cart = Cart(currency=test_currency)
-    test_order = Order(currency=test_currency, cart=test_cart)
+    test_cart = Cart()
+    test_order = Order(currency=Currencies.USD, cart=test_cart)
 
     test_payment = Payment(
         order=test_order, amount=Decimal("10.00"), currency=test_currency
@@ -99,8 +99,8 @@ def test_payment_invalid_status_transition(current, target):
 
 def test_payment_restore():
     test_currency = Currency(currency=Currencies.USD, coef=Decimal(1.0))
-    test_cart = Cart(currency=test_currency)
-    test_order = Order(currency=test_currency, cart=test_cart)
+    test_cart = Cart()
+    test_order = Order(currency=Currencies.USD, cart=test_cart)
 
     restored = Payment.restore(
         id=1,

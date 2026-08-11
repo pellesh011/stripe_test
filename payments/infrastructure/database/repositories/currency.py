@@ -15,11 +15,11 @@ class CurrencyRepositoryImpl(CurrencyRepository):
             raise EntityNotFoundError() from None
         return currency_to_entity(model)
 
-    async def get_active(self) -> list[Currency]:
-        return [
-            currency_to_entity(model)
-            async for model in CurrencyModel.objects.filter(is_active=True)
+    async def get_active(self, limit: int = 10, offset: int = 0) -> list[Currency]:
+        qs = CurrencyModel.objects.filter(is_active=True).order_by("id")[
+            offset : offset + limit
         ]
+        return [currency_to_entity(model) async for model in qs]
 
     async def get_active_by_code(self, currency: Currencies) -> Currency:
         try:

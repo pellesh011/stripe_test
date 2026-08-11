@@ -22,40 +22,39 @@ from payments.infrastructure.database.repositories.mappers import (
 
 CART_ITEM_SELECT_RELATED = (
     "product",
-    "product_price__currency",
     "product_price__product",
 )
 
 
-async def load_cart_items(cart_id: int) -> list[CartItem]:
+def load_cart_items(cart_id: int) -> list[CartItem]:
     return [
         cart_item_to_entity(model)
-        async for model in CartItemModel.objects.filter(cart_id=cart_id).select_related(
+        for model in CartItemModel.objects.filter(cart_id=cart_id).select_related(
             *CART_ITEM_SELECT_RELATED
         )
     ]
 
 
-async def load_order_items(order_id: int) -> list[OrderItem]:
+def load_order_items(order_id: int) -> list[OrderItem]:
     return [
         order_item_to_entity(model)
-        async for model in OrderItemModel.objects.filter(
-            order_id=order_id
-        ).select_related(*CART_ITEM_SELECT_RELATED)
+        for model in OrderItemModel.objects.filter(order_id=order_id).select_related(
+            *CART_ITEM_SELECT_RELATED
+        )
     ]
 
 
-async def build_cart(model: CartModel) -> Cart:
-    items = await load_cart_items(model.id)
+def build_cart(model: CartModel) -> Cart:
+    items = load_cart_items(model.id)
     return cart_to_entity(model, items)
 
 
-async def build_order(model: OrderModel) -> Order:
-    cart = await build_cart(model.cart)
-    items = await load_order_items(model.id)
+def build_order(model: OrderModel) -> Order:
+    cart = build_cart(model.cart)
+    items = load_order_items(model.id)
     return order_to_entity(model, cart, items)
 
 
-async def build_payment(model: PaymentModel) -> Payment:
-    order = await build_order(model.order)
+def build_payment(model: PaymentModel) -> Payment:
+    order = build_order(model.order)
     return payment_to_entity(model, order)

@@ -10,10 +10,6 @@ class DiscountValueError(Exception):
     pass
 
 
-class ProductCurrencyError(Exception):
-    pass
-
-
 class ProductNameError(Exception):
     pass
 

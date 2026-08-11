@@ -15,11 +15,11 @@ class ProductRepositoryImpl(ProductRepository):
             raise EntityNotFoundError() from None
         return product_to_entity(model)
 
-    async def get_active(self) -> list[Product]:
-        return [
-            product_to_entity(model)
-            async for model in ProductModel.objects.filter(is_active=True)
+    async def get_active(self, limit: int = 10, offset: int = 0) -> list[Product]:
+        qs = ProductModel.objects.filter(is_active=True).order_by("id")[
+            offset : offset + limit
         ]
+        return [product_to_entity(model) async for model in qs]
 
     async def save(self, product: Product) -> None:
         if product.id is None:

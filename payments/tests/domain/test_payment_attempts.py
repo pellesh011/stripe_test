@@ -14,8 +14,8 @@ from payments.domain.entities.payment_provider import PaymentProvider
 
 def make_payment_attempt() -> PaymentAttempt:
     test_currency = Currency(currency=Currencies.USD, coef=Decimal(1.0))
-    test_cart = Cart(currency=test_currency)
-    test_order = Order(currency=test_currency, cart=test_cart)
+    test_cart = Cart()
+    test_order = Order(currency=Currencies.USD, cart=test_cart)
     test_payment = Payment(
         order=test_order, amount=Decimal("10.00"), currency=test_currency
     )
@@ -71,8 +71,8 @@ def test_payment_attempt_mark_cancelled():
 
 def test_payment_attempt_restore():
     test_currency = Currency(currency=Currencies.USD, coef=Decimal(1.0))
-    test_cart = Cart(currency=test_currency)
-    test_order = Order(currency=test_currency, cart=test_cart)
+    test_cart = Cart()
+    test_order = Order(currency=Currencies.USD, cart=test_cart)
     test_payment = Payment(
         order=test_order, amount=Decimal("10.00"), currency=test_currency
     )

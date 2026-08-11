@@ -8,36 +8,34 @@ from payments.infrastructure.database.repositories.loaders import build_order
 
 
 class OrderRepositoryImpl(OrderRepository):
-    async def get_by_id(self, id: int) -> Order:
+    def get_by_id(self, id: int) -> Order:
         try:
-            model = await OrderModel.objects.select_related(
-                "cart__currency",
-                "currency",
+            model = OrderModel.objects.select_related(
+                "cart",
                 "discount",
-            ).aget(id=id)
+            ).get(id=id)
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
-        return await build_order(model)
+        return build_order(model)
 
-    async def save(self, order: Order) -> None:
+    def save(self, order: Order) -> None:
         assert order.cart.id is not None
-        assert order.currency.id is not None
 
         if order.discount is not None:
             assert order.discount.id is not None
 
         if order.id is None:
-            model = await OrderModel.objects.acreate(
+            model = OrderModel.objects.create(
                 cart_id=order.cart.id,
-                currency_id=order.currency.id,
+                currency=order.currency.value,
                 discount_id=order.discount.id if order.discount is not None else None,
                 status=order.status.value,
             )
             order.id = model.id
         else:
-            await OrderModel.objects.filter(id=order.id).aupdate(
+            OrderModel.objects.filter(id=order.id).update(
                 cart_id=order.cart.id,
-                currency_id=order.currency.id,
+                currency=order.currency.value,
                 discount_id=order.discount.id if order.discount is not None else None,
                 status=order.status.value,
             )

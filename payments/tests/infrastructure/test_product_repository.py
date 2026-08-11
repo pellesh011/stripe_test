@@ -29,6 +29,24 @@ def test_get_active(product_repo, product, inactive_product, call):
 
 
 @pytest.mark.django_db
+def test_get_active_pagination_limit_and_offset(product_repo, product, call):
+    for name in ("Product 1", "Product 2", "Product 3"):
+        entity = Product(name=name, is_active=True)
+        call(product_repo.save)(entity)
+
+    first_page = call(product_repo.get_active)(limit=2, offset=0)
+    second_page = call(product_repo.get_active)(limit=2, offset=2)
+
+    assert len(first_page) == 2
+    assert len(second_page) == 2
+
+    first_ids = {item.id for item in first_page}
+    second_ids = {item.id for item in second_page}
+    assert first_ids.isdisjoint(second_ids)
+    assert product.id in first_ids | second_ids
+
+
+@pytest.mark.django_db
 def test_save_create_assigns_id(product_repo, call):
     entity = Product(name="New Product", is_active=True)
     assert entity.id is None

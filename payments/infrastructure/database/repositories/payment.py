@@ -6,39 +6,38 @@ from payments.infrastructure.database.repositories.loaders import build_payment
 
 PAYMENT_SELECT_RELATED = (
     "currency",
-    "order__cart__currency",
-    "order__currency",
+    "order__cart",
     "order__discount",
 )
 
 
 class PaymentRepositoryImpl(PaymentRepository):
-    async def _get_or_none(self, **filters) -> PaymentModel | None:
+    def _get_or_none(self, **filters) -> PaymentModel | None:
         return (
-            await PaymentModel.objects.select_related(*PAYMENT_SELECT_RELATED)
+            PaymentModel.objects.select_related(*PAYMENT_SELECT_RELATED)
             .filter(**filters)
             .order_by("-id")
-            .afirst()
+            .first()
         )
 
-    async def get_by_id(self, id: int) -> Payment:
-        model = await self._get_or_none(id=id)
+    def get_by_id(self, id: int) -> Payment:
+        model = self._get_or_none(id=id)
         if model is None:
             raise EntityNotFoundError()
-        return await build_payment(model)
+        return build_payment(model)
 
-    async def get_by_order_id(self, order_id: int) -> Payment:
-        model = await self._get_or_none(order_id=order_id)
+    def get_by_order_id(self, order_id: int) -> Payment:
+        model = self._get_or_none(order_id=order_id)
         if model is None:
             raise EntityNotFoundError()
-        return await build_payment(model)
+        return build_payment(model)
 
-    async def save(self, payment: Payment) -> None:
+    def save(self, payment: Payment) -> None:
         assert payment.order.id is not None
         assert payment.currency.id is not None
 
         if payment.id is None:
-            model = await PaymentModel.objects.acreate(
+            model = PaymentModel.objects.create(
                 order_id=payment.order.id,
                 amount=payment.amount,
                 currency_id=payment.currency.id,
@@ -46,7 +45,7 @@ class PaymentRepositoryImpl(PaymentRepository):
             )
             payment.id = model.id
         else:
-            await PaymentModel.objects.filter(id=payment.id).aupdate(
+            PaymentModel.objects.filter(id=payment.id).update(
                 order_id=payment.order.id,
                 amount=payment.amount,
                 currency_id=payment.currency.id,

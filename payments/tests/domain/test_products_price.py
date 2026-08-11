@@ -9,7 +9,13 @@ def test_product_price_create():
     test_product = Product("test name", True)
     test_currency = Currency(currency=Currencies.EUR, coef=Decimal(1.1))
     test_product_price = ProductPrice(
-        currency=test_currency, price=Decimal(100.10), product=test_product
+        currency=Currencies.EUR, price=Decimal(100.10), product=test_product
     )
-    assert test_product_price.currency.currency == Currencies.EUR
-    assert test_product_price.get_price(None) == 11011
+    assert test_product_price.currency == Currencies.EUR
+    assert test_product_price.get_price(test_currency) == 11011
+
+
+def test_product_price_default_currency():
+    test_product = Product("test name", True)
+    test_product_price = ProductPrice(price=Decimal("10.00"), product=test_product)
+    assert test_product_price.currency == Currencies.USD
