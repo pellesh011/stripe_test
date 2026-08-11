@@ -1,3 +1,4 @@
+from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
 
 from payments.domain.entities.cart import Cart
@@ -13,7 +14,7 @@ class CartRepositoryImpl(CartRepository):
             model = await CartModel.objects.select_related("currency").aget(id=id)
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
-        return await build_cart(model)
+        return await sync_to_async(build_cart)(model)
 
     async def save(self, cart: Cart) -> None:
         assert cart.currency.id is not None

@@ -4,7 +4,6 @@ from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
 from payments.domain.repositories.product import ProductRepository
 from payments.domain.repositories.product_price import ProductPriceRepository
-from payments.infrastructure.database.uow import DjangoUnitOfWork
 
 
 class GetProductListUseCase:
@@ -12,9 +11,7 @@ class GetProductListUseCase:
         self,
         products: ProductRepository,
         product_prices: ProductPriceRepository,
-        uow: DjangoUnitOfWork,
     ):
-        self.uow = uow
         self.products = products
         self.product_prices = product_prices
 

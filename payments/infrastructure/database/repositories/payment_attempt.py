@@ -22,16 +22,16 @@ PAYMENT_ATTEMPT_SELECT_RELATED = (
 
 
 class PaymentAttemptRepositoryImpl(PaymentAttemptRepository):
-    async def get_by_id(self, id: int) -> PaymentAttempt:
+    def get_by_id(self, id: int) -> PaymentAttempt:
         try:
-            model = await PaymentAttemptModel.objects.select_related(
+            model = PaymentAttemptModel.objects.select_related(
                 *PAYMENT_ATTEMPT_SELECT_RELATED
-            ).aget(id=id)
+            ).get(id=id)
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
-        return await self._to_entity(model)
+        return self._to_entity(model)
 
-    async def get_by_payment_id(
+    def get_by_payment_id(
         self, payment_id: int, limit: int = 10, offset: int = 0
     ) -> list[PaymentAttempt]:
         qs = (
@@ -39,19 +39,19 @@ class PaymentAttemptRepositoryImpl(PaymentAttemptRepository):
             .select_related(*PAYMENT_ATTEMPT_SELECT_RELATED)
             .order_by("id")[offset : offset + limit]
         )
-        return [await self._to_entity(model) async for model in qs]
+        return [self._to_entity(model) for model in qs]
 
-    async def _to_entity(self, model: PaymentAttemptModel) -> PaymentAttempt:
+    def _to_entity(self, model: PaymentAttemptModel) -> PaymentAttempt:
         provider = payment_provider_to_entity(model.provider)
-        payment = await build_payment(model.payment)
+        payment = build_payment(model.payment)
         return payment_attempt_to_entity(model, provider, payment)
 
-    async def save(self, payment_attempt: PaymentAttempt) -> None:
+    def save(self, payment_attempt: PaymentAttempt) -> None:
         assert payment_attempt.provider.id is not None
         assert payment_attempt.payment.id is not None
 
         if payment_attempt.id is None:
-            model = await PaymentAttemptModel.objects.acreate(
+            model = PaymentAttemptModel.objects.create(
                 external_id=payment_attempt.external_id,
                 provider_id=payment_attempt.provider.id,
                 payment_id=payment_attempt.payment.id,
@@ -60,7 +60,7 @@ class PaymentAttemptRepositoryImpl(PaymentAttemptRepository):
             )
             payment_attempt.id = model.id
         else:
-            await PaymentAttemptModel.objects.filter(id=payment_attempt.id).aupdate(
+            PaymentAttemptModel.objects.filter(id=payment_attempt.id).update(
                 external_id=payment_attempt.external_id,
                 provider_id=payment_attempt.provider.id,
                 payment_id=payment_attempt.payment.id,

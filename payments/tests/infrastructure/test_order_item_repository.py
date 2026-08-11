@@ -7,17 +7,17 @@ from payments.domain.exceptions import EntityNotFoundError
 
 
 @pytest.mark.django_db
-def test_get_by_id_not_found(order_item_repo, call):
+def test_get_by_id_not_found(order_item_repo):
     with pytest.raises(EntityNotFoundError):
-        call(order_item_repo.get_by_id)(9999)
+        order_item_repo.get_by_id(9999)
 
 
 @pytest.mark.django_db
-def test_save_requires_order(order_item_repo, product, product_price, call):
+def test_save_requires_order(order_item_repo, product, product_price):
     entity = OrderItem(product=product, product_price=product_price)
 
     with pytest.raises(ValueError, match="order"):
-        call(order_item_repo.save)(entity)
+        order_item_repo.save(entity)
 
 
 @pytest.mark.django_db
@@ -26,20 +26,19 @@ def test_save_create_assigns_id(
     order,
     product,
     product_price,
-    call,
 ):
     entity = OrderItem(product=product, product_price=product_price, order=order)
     assert entity.id is None
 
-    call(order_item_repo.save)(entity)
+    order_item_repo.save(entity)
 
     assert entity.id is not None
 
 
 @pytest.mark.django_db
-def test_get_by_id_returns_full_item(order_item_repo, order_item, call):
+def test_get_by_id_returns_full_item(order_item_repo, order_item):
     assert order_item.id is not None
-    loaded = call(order_item_repo.get_by_id)(order_item.id)
+    loaded = order_item_repo.get_by_id(order_item.id)
 
     assert loaded.id == order_item.id
     assert loaded.product.name == order_item.product.name
@@ -47,9 +46,9 @@ def test_get_by_id_returns_full_item(order_item_repo, order_item, call):
 
 
 @pytest.mark.django_db
-def test_get_by_order_id(order_item_repo, order_item, order, call):
+def test_get_by_order_id(order_item_repo, order_item, order):
     assert order.id is not None
-    items = call(order_item_repo.get_by_order_id)(order.id)
+    items = order_item_repo.get_by_order_id(order.id)
 
     assert len(items) == 1
     assert items[0].id == order_item.id
@@ -62,15 +61,14 @@ def test_get_by_order_id_pagination_limit_and_offset(
     order,
     product,
     product_price,
-    call,
 ):
     for _ in range(2):
         entity = OrderItem(product=product, product_price=product_price, order=order)
-        call(order_item_repo.save)(entity)
+        order_item_repo.save(entity)
 
     assert order.id is not None
-    first_page = call(order_item_repo.get_by_order_id)(order.id, limit=2, offset=0)
-    second_page = call(order_item_repo.get_by_order_id)(order.id, limit=2, offset=2)
+    first_page = order_item_repo.get_by_order_id(order.id, limit=2, offset=0)
+    second_page = order_item_repo.get_by_order_id(order.id, limit=2, offset=2)
 
     assert len(first_page) == 2
     assert len(second_page) == 1
@@ -94,19 +92,19 @@ def test_get_by_order_id_filters_by_order(
     other_cart = Cart(currency=order.currency)
     call(cart_repo.save)(other_cart)
     other_order = Order(currency=order.currency, cart=other_cart)
-    call(order_repo.save)(other_order)
+    order_repo.save(other_order)
 
     other_item = OrderItem(
         product=product,
         product_price=product_price,
         order=other_order,
     )
-    call(order_item_repo.save)(other_item)
+    order_item_repo.save(other_item)
 
     assert order.id is not None
     assert other_order.id is not None
-    items = call(order_item_repo.get_by_order_id)(order.id)
-    other_items = call(order_item_repo.get_by_order_id)(other_order.id)
+    items = order_item_repo.get_by_order_id(order.id)
+    other_items = order_item_repo.get_by_order_id(other_order.id)
 
     assert [item.id for item in items] == [order_item.id]
     assert [item.id for item in other_items] == [other_item.id]

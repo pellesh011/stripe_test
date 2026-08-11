@@ -178,23 +178,23 @@ def cart_item(cart_item_repo, cart, product, product_price, db, call) -> CartIte
 
 
 @pytest.fixture
-def order(order_repo, cart, currency, discount, db, call) -> Order:
+def order(order_repo, cart, currency, discount, db) -> Order:
     entity = Order(currency=currency, cart=cart, discount=discount)
-    call(order_repo.save)(entity)
+    order_repo.save(entity)
     return entity
 
 
 @pytest.fixture
-def order_item(order_item_repo, order, product, product_price, db, call) -> OrderItem:
+def order_item(order_item_repo, order, product, product_price, db) -> OrderItem:
     entity = OrderItem(product=product, product_price=product_price, order=order)
-    call(order_item_repo.save)(entity)
+    order_item_repo.save(entity)
     return entity
 
 
 @pytest.fixture
-def payment(payment_repo, order, currency, db, call) -> Payment:
+def payment(payment_repo, order, currency, db) -> Payment:
     entity = Payment(order=order, amount=Decimal("10.00"), currency=currency)
-    call(payment_repo.save)(entity)
+    payment_repo.save(entity)
     return entity
 
 
@@ -204,8 +204,7 @@ def payment_attempt(
     payment,
     payment_provider,
     db,
-    call,
 ) -> PaymentAttempt:
     entity = PaymentAttempt(provider=payment_provider, payment=payment)
-    call(payment_attempt_repo.save)(entity)
+    payment_attempt_repo.save(entity)
     return entity
