@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from payments.domain.entities.exchange_rate import Currencies, ExchangeRate
+from payments.domain.entities.exchange_rate import Currency, ExchangeRate
 
 
 class ExchangeRateRepository(ABC):
@@ -13,7 +13,7 @@ class ExchangeRateRepository(ABC):
     ) -> list[ExchangeRate]: ...
 
     @abstractmethod
-    async def get_active_by_code(self, currency: Currencies) -> ExchangeRate: ...
+    async def get_active_by_code(self, currency: Currency) -> ExchangeRate: ...
 
     @abstractmethod
     async def save(self, exchange_rate: ExchangeRate) -> None: ...

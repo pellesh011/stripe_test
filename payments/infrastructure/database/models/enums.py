@@ -2,16 +2,16 @@ from django.db import models
 
 from payments.domain.entities.cart import CartStatus
 from payments.domain.entities.discount import DiscountType
-from payments.domain.entities.exchange_rate import Currencies
+from payments.domain.entities.exchange_rate import Currency
 from payments.domain.entities.order import OrderStatus
 from payments.domain.entities.payment import PaymentStatus
 from payments.domain.entities.payment_attempts import PaymentAttemptStatus
 
 
 class CurrencyChoices(models.TextChoices):
-    USD = Currencies.USD.value, "USD"
-    RUB = Currencies.RUB.value, "RUB"
-    EUR = Currencies.EUR.value, "EUR"
+    USD = Currency.USD.value, "USD"
+    RUB = Currency.RUB.value, "RUB"
+    EUR = Currency.EUR.value, "EUR"
 
 
 class DiscountTypeChoices(models.TextChoices):

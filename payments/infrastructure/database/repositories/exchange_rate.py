@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 
-from payments.domain.entities.exchange_rate import Currencies, ExchangeRate
+from payments.domain.entities.exchange_rate import Currency, ExchangeRate
 from payments.domain.exceptions import EntityNotFoundError
 from payments.domain.repositories.exchange_rate import ExchangeRateRepository
 from payments.infrastructure.database.models.exchange_rate import ExchangeRateModel
@@ -23,7 +23,7 @@ class ExchangeRateRepositoryImpl(ExchangeRateRepository):
         ]
         return [exchange_rate_to_entity(model) async for model in qs]
 
-    async def get_active_by_code(self, currency: Currencies) -> ExchangeRate:
+    async def get_active_by_code(self, currency: Currency) -> ExchangeRate:
         try:
             model = await ExchangeRateModel.objects.filter(
                 is_active=True,

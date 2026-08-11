@@ -6,7 +6,7 @@ from payments.application.dto.product import GetProductListDTO, PaginationDTO
 from payments.application.use_cases.product.get_product_list import (
     GetProductListUseCase,
 )
-from payments.domain.entities.exchange_rate import Currencies
+from payments.domain.entities.exchange_rate import Currency
 from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
 
@@ -40,7 +40,7 @@ def test_execute_attaches_active_prices_in_currency(
     assert result[0].id == product.id
     assert len(result[0].prices) == 1
     assert result[0].prices[0].id == product_price.id
-    assert result[0].prices[0].currency == Currencies.EUR
+    assert result[0].prices[0].currency == Currency.EUR
 
 
 @pytest.mark.django_db
@@ -52,7 +52,7 @@ def test_execute_filters_prices_by_currency(
     call,
 ):
     rub_price = ProductPrice(
-        currency=Currencies.RUB, price=Decimal("5.00"), product=product
+        currency=Currency.RUB, price=Decimal("5.00"), product=product
     )
     call(product_price_repo.save)(rub_price)
 
@@ -75,7 +75,7 @@ def test_execute_currency_none_returns_all_active_prices(
     call,
 ):
     rub_price = ProductPrice(
-        currency=Currencies.RUB, price=Decimal("5.00"), product=product
+        currency=Currency.RUB, price=Decimal("5.00"), product=product
     )
     call(product_price_repo.save)(rub_price)
 
@@ -100,7 +100,7 @@ def test_execute_excludes_inactive_prices(
     call,
 ):
     inactive_price = ProductPrice(
-        currency=Currencies.RUB, price=Decimal("5.00"), product=product
+        currency=Currency.RUB, price=Decimal("5.00"), product=product
     )
     inactive_price.set_active(False)
     call(product_price_repo.save)(inactive_price)

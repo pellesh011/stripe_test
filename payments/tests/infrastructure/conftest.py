@@ -6,7 +6,7 @@ from asgiref.sync import async_to_sync
 from payments.domain.entities.cart import Cart
 from payments.domain.entities.cart_item import CartItem
 from payments.domain.entities.discount import Discount, DiscountType
-from payments.domain.entities.exchange_rate import Currencies, ExchangeRate
+from payments.domain.entities.exchange_rate import Currency, ExchangeRate
 from payments.domain.entities.order import Order
 from payments.domain.entities.order_item import OrderItem
 from payments.domain.entities.payment import Payment
@@ -107,7 +107,7 @@ def payment_provider_repo() -> PaymentProviderRepositoryImpl:
 
 @pytest.fixture
 def exchange_rate(exchange_rate_repo, db, call) -> ExchangeRate:
-    entity = ExchangeRate(currency=Currencies.EUR, coef=Decimal("1.10"))
+    entity = ExchangeRate(currency=Currency.EUR, coef=Decimal("1.10"))
     call(exchange_rate_repo.save)(entity)
     return entity
 
@@ -152,7 +152,7 @@ def inactive_product(product_repo, db, call) -> Product:
 @pytest.fixture
 def product_price(product_price_repo, product, db, call) -> ProductPrice:
     entity = ProductPrice(
-        currency=Currencies.EUR, price=Decimal("10.00"), product=product
+        currency=Currency.EUR, price=Decimal("10.00"), product=product
     )
     call(product_price_repo.save)(entity)
     return entity
@@ -181,7 +181,7 @@ def cart_item(cart_item_repo, cart, product, product_price, db, call) -> CartIte
 
 @pytest.fixture
 def order(order_repo, cart, discount, db) -> Order:
-    entity = Order(currency=Currencies.EUR, cart=cart, discount=discount)
+    entity = Order(currency=Currency.EUR, cart=cart, discount=discount)
     order_repo.save(entity)
     return entity
 

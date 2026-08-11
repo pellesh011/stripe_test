@@ -4,7 +4,7 @@ from enum import Enum
 from payments.domain.exceptions import ExchangeRateValueError
 
 
-class Currencies(Enum):
+class Currency(Enum):
     USD = "usd"
     RUB = "rub"
     EUR = "eur"
@@ -12,20 +12,20 @@ class Currencies(Enum):
 
 class ExchangeRate:
     id: int | None
-    base_currency: Currencies
-    currency: Currencies
+    base_currency: Currency
+    currency: Currency
     coef: Decimal
     is_active: bool
 
     def __init__(
         self,
-        currency: Currencies,
+        currency: Currency,
         coef: Decimal,
         is_active: bool = True,
         id: int | None = None,
     ):
 
-        self.base_currency = Currencies.USD
+        self.base_currency = Currency.USD
         self.currency = currency
         self.coef = coef
         self.is_active = is_active
@@ -39,7 +39,7 @@ class ExchangeRate:
     @classmethod
     def restore(
         cls,
-        currency: Currencies,
+        currency: Currency,
         coef: Decimal,
         is_active: bool,
         id: int | None = None,

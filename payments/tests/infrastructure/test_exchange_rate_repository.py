@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from payments.domain.entities.exchange_rate import Currencies, ExchangeRate
+from payments.domain.entities.exchange_rate import Currency, ExchangeRate
 from payments.domain.exceptions import EntityNotFoundError
 
 
@@ -11,7 +11,7 @@ def test_get_by_id(exchange_rate_repo, exchange_rate, call):
     assert exchange_rate.id is not None
     loaded = call(exchange_rate_repo.get_by_id)(exchange_rate.id)
     assert loaded.id == exchange_rate.id
-    assert loaded.currency == Currencies.EUR
+    assert loaded.currency == Currency.EUR
     assert loaded.coef == Decimal("1.10")
     assert loaded.is_active is True
 
@@ -25,7 +25,7 @@ def test_get_by_id_not_found(exchange_rate_repo, call):
 @pytest.mark.django_db
 def test_get_active(exchange_rate_repo, exchange_rate, call):
     inactive = ExchangeRate(
-        currency=Currencies.RUB,
+        currency=Currency.RUB,
         coef=Decimal("0.012"),
         is_active=False,
     )
@@ -34,15 +34,15 @@ def test_get_active(exchange_rate_repo, exchange_rate, call):
     active = call(exchange_rate_repo.get_active)()
     active_codes = {item.currency for item in active}
 
-    assert Currencies.EUR in active_codes
-    assert Currencies.RUB not in active_codes
+    assert Currency.EUR in active_codes
+    assert Currency.RUB not in active_codes
 
 
 @pytest.mark.django_db
 def test_get_active_pagination_limit_and_offset(
     exchange_rate_repo, exchange_rate, call
 ):
-    for enum in (Currencies.RUB, Currencies.USD):
+    for enum in (Currency.RUB, Currency.USD):
         entity = ExchangeRate(currency=enum, coef=Decimal("1.00"))
         call(exchange_rate_repo.save)(entity)
 
@@ -60,27 +60,27 @@ def test_get_active_pagination_limit_and_offset(
 
 @pytest.mark.django_db
 def test_get_active_by_code(exchange_rate_repo, exchange_rate, call):
-    loaded = call(exchange_rate_repo.get_active_by_code)(Currencies.EUR)
-    assert loaded.currency == Currencies.EUR
+    loaded = call(exchange_rate_repo.get_active_by_code)(Currency.EUR)
+    assert loaded.currency == Currency.EUR
     assert loaded.is_active is True
 
 
 @pytest.mark.django_db
 def test_get_active_by_code_not_found(exchange_rate_repo, exchange_rate, call):
     inactive = ExchangeRate(
-        currency=Currencies.RUB,
+        currency=Currency.RUB,
         coef=Decimal("0.012"),
         is_active=False,
     )
     call(exchange_rate_repo.save)(inactive)
 
     with pytest.raises(EntityNotFoundError):
-        call(exchange_rate_repo.get_active_by_code)(Currencies.RUB)
+        call(exchange_rate_repo.get_active_by_code)(Currency.RUB)
 
 
 @pytest.mark.django_db
 def test_save_create_assigns_id(exchange_rate_repo, call):
-    entity = ExchangeRate(currency=Currencies.RUB, coef=Decimal("0.012"))
+    entity = ExchangeRate(currency=Currency.RUB, coef=Decimal("0.012"))
     assert entity.id is None
 
     call(exchange_rate_repo.save)(entity)
