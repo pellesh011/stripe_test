@@ -1,7 +1,7 @@
 from payments.domain.entities.cart import Cart, CartStatus
 from payments.domain.entities.cart_item import CartItem
-from payments.domain.entities.currency import Currencies, Currency
 from payments.domain.entities.discount import Discount, DiscountType
+from payments.domain.entities.exchange_rate import Currencies, ExchangeRate
 from payments.domain.entities.order import Order, OrderStatus
 from payments.domain.entities.order_item import OrderItem
 from payments.domain.entities.payment import Payment, PaymentStatus
@@ -13,8 +13,8 @@ from payments.domain.entities.payment_provider import PaymentProvider
 from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
 from payments.infrastructure.database.models.cart import CartItemModel, CartModel
-from payments.infrastructure.database.models.currency import CurrencyModel
 from payments.infrastructure.database.models.discount import DiscountModel
+from payments.infrastructure.database.models.exchange_rate import ExchangeRateModel
 from payments.infrastructure.database.models.order import OrderItemModel, OrderModel
 from payments.infrastructure.database.models.payment import PaymentModel
 from payments.infrastructure.database.models.payment_attempt import (
@@ -29,8 +29,8 @@ from payments.infrastructure.database.models.product import (
 )
 
 
-def currency_to_entity(model: CurrencyModel) -> Currency:
-    return Currency.restore(
+def exchange_rate_to_entity(model: ExchangeRateModel) -> ExchangeRate:
+    return ExchangeRate.restore(
         currency=Currencies(model.currency),
         coef=model.coef,
         is_active=model.is_active,
@@ -117,7 +117,7 @@ def payment_to_entity(model: PaymentModel, order: Order) -> Payment:
         id=model.id,
         order=order,
         amount=model.amount,
-        currency=currency_to_entity(model.currency),
+        currency=exchange_rate_to_entity(model.currency),
         status=PaymentStatus(model.status),
     )
 

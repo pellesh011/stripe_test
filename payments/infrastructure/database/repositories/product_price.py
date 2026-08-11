@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 
-from payments.domain.entities.currency import Currencies
+from payments.domain.entities.exchange_rate import Currencies
 from payments.domain.entities.product_price import ProductPrice
 from payments.domain.exceptions import EntityNotFoundError
 from payments.domain.repositories.product_price import ProductPriceRepository

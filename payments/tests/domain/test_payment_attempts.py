@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 from payments.domain.entities.cart import Cart
-from payments.domain.entities.currency import Currencies, Currency
+from payments.domain.entities.exchange_rate import Currencies, ExchangeRate
 from payments.domain.entities.order import Order
 from payments.domain.entities.payment import Payment
 from payments.domain.entities.payment_attempts import (
@@ -13,11 +13,11 @@ from payments.domain.entities.payment_provider import PaymentProvider
 
 
 def make_payment_attempt() -> PaymentAttempt:
-    test_currency = Currency(currency=Currencies.USD, coef=Decimal(1.0))
+    test_exchange_rate = ExchangeRate(currency=Currencies.USD, coef=Decimal(1.0))
     test_cart = Cart()
     test_order = Order(currency=Currencies.USD, cart=test_cart)
     test_payment = Payment(
-        order=test_order, amount=Decimal("10.00"), currency=test_currency
+        order=test_order, amount=Decimal("10.00"), currency=test_exchange_rate
     )
     test_provider = PaymentProvider(id=None, name="test-provider")
     return PaymentAttempt(provider=test_provider, payment=test_payment)
@@ -70,11 +70,11 @@ def test_payment_attempt_mark_cancelled():
 
 
 def test_payment_attempt_restore():
-    test_currency = Currency(currency=Currencies.USD, coef=Decimal(1.0))
+    test_exchange_rate = ExchangeRate(currency=Currencies.USD, coef=Decimal(1.0))
     test_cart = Cart()
     test_order = Order(currency=Currencies.USD, cart=test_cart)
     test_payment = Payment(
-        order=test_order, amount=Decimal("10.00"), currency=test_currency
+        order=test_order, amount=Decimal("10.00"), currency=test_exchange_rate
     )
     test_provider = PaymentProvider(id=1, name="test-provider")
 

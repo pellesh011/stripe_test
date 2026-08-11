@@ -1,6 +1,6 @@
 import pytest
 
-from payments.domain.entities.currency import Currencies
+from payments.domain.entities.exchange_rate import Currencies
 from payments.domain.entities.order import Order, OrderStatus
 from payments.domain.exceptions import EntityNotFoundError
 

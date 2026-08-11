@@ -6,7 +6,7 @@ from payments.application.dto.product import GetProductListDTO, PaginationDTO
 from payments.application.use_cases.product.get_product_list import (
     GetProductListUseCase,
 )
-from payments.domain.entities.currency import Currencies
+from payments.domain.entities.exchange_rate import Currencies
 from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
 

@@ -1,8 +1,8 @@
 from decimal import Decimal
 
 from payments.domain.entities.cart import Cart
-from payments.domain.entities.currency import Currencies
 from payments.domain.entities.discount import Discount, DiscountType
+from payments.domain.entities.exchange_rate import Currencies
 from payments.domain.entities.order import Order, OrderStatus
 from payments.domain.entities.order_item import OrderItem
 from payments.domain.entities.product import Product

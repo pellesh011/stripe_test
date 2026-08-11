@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 
-from payments.domain.entities.currency import Currency
+from payments.domain.entities.exchange_rate import ExchangeRate
 from payments.domain.entities.order import Order
 from payments.domain.exceptions import InvalidPaymentStatusTransition
 
@@ -22,14 +22,14 @@ class Payment:
     order: Order
     user: None
     amount: Decimal
-    currency: Currency
+    currency: ExchangeRate
     status: PaymentStatus
 
     def __init__(
         self,
         order: Order,
         amount: Decimal,
-        currency: Currency,
+        currency: ExchangeRate,
         user=None,
         id: int | None = None,
     ):
@@ -73,7 +73,7 @@ class Payment:
         id: int,
         order: Order,
         amount: Decimal,
-        currency: Currency,
+        currency: ExchangeRate,
         status: PaymentStatus,
         user=None,
     ) -> Payment:

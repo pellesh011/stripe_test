@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from payments.domain.entities.cart import Cart
-from payments.domain.entities.currency import Currencies, Currency
+from payments.domain.entities.exchange_rate import Currencies, ExchangeRate
 from payments.domain.entities.order import Order
 from payments.domain.entities.order_item import OrderItem
 from payments.domain.entities.product import Product
@@ -9,7 +9,7 @@ from payments.domain.entities.product_price import ProductPrice
 
 
 def test_order_item_create():
-    test_currency = Currency(currency=Currencies.USD, coef=Decimal("1.0"))
+    test_exchange_rate = ExchangeRate(currency=Currencies.USD, coef=Decimal("1.0"))
     test_cart = Cart()
     test_order = Order(currency=Currencies.USD, cart=test_cart)
 
@@ -24,7 +24,7 @@ def test_order_item_create():
     assert test_order_item.product == test_product
     assert test_order_item.product_price == test_product_price
     assert test_order_item.order == test_order
-    assert test_order_item.product_price.get_price(test_currency) == 10010
+    assert test_order_item.product_price.get_price(test_exchange_rate) == 10010
 
 
 def test_order_item_restore():

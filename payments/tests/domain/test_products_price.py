@@ -1,18 +1,18 @@
 from decimal import Decimal
 
-from payments.domain.entities.currency import Currencies, Currency
+from payments.domain.entities.exchange_rate import Currencies, ExchangeRate
 from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
 
 
 def test_product_price_create():
     test_product = Product("test name", True)
-    test_currency = Currency(currency=Currencies.EUR, coef=Decimal(1.1))
+    test_exchange_rate = ExchangeRate(currency=Currencies.EUR, coef=Decimal(1.1))
     test_product_price = ProductPrice(
         currency=Currencies.EUR, price=Decimal(100.10), product=test_product
     )
     assert test_product_price.currency == Currencies.EUR
-    assert test_product_price.get_price(test_currency) == 11011
+    assert test_product_price.get_price(test_exchange_rate) == 11011
 
 
 def test_product_price_default_currency():

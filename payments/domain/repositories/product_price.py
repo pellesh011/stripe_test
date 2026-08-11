@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from payments.domain.entities.currency import Currencies
+from payments.domain.entities.exchange_rate import Currencies
 from payments.domain.entities.product_price import ProductPrice
 
 

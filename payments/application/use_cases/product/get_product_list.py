@@ -1,5 +1,5 @@
 from payments.application.dto.product import GetProductListDTO
-from payments.domain.entities.currency import Currencies
+from payments.domain.entities.exchange_rate import Currencies
 from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
 from payments.domain.repositories.product import ProductRepository

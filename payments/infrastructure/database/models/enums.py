@@ -1,8 +1,8 @@
 from django.db import models
 
 from payments.domain.entities.cart import CartStatus
-from payments.domain.entities.currency import Currencies
 from payments.domain.entities.discount import DiscountType
+from payments.domain.entities.exchange_rate import Currencies
 from payments.domain.entities.order import OrderStatus
 from payments.domain.entities.payment import PaymentStatus
 from payments.domain.entities.payment_attempts import PaymentAttemptStatus

@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from payments.domain.entities.currency import Currencies, Currency
+from payments.domain.entities.exchange_rate import Currencies, ExchangeRate
 from payments.domain.entities.product import Product
 
 
@@ -28,7 +28,7 @@ class ProductPrice:
         self.is_active = is_active
         return self.is_active
 
-    def get_price(self, currency: Currency) -> int:
+    def get_price(self, currency: ExchangeRate) -> int:
         return int(self.price * currency.coef * 100)
 
     @classmethod
