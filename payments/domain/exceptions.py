@@ -1,4 +1,4 @@
-class CurrencyValueError(Exception):
+class ExchangeRateValueError(Exception):
     pass
 
 
@@ -7,10 +7,6 @@ class DiscountNameError(Exception):
 
 
 class DiscountValueError(Exception):
-    pass
-
-
-class ProductCurrencyError(Exception):
     pass
 
 

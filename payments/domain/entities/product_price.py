@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from payments.domain.entities.currency import Currency
+from payments.domain.entities.exchange_rate import Currency, ExchangeRate
 from payments.domain.entities.product import Product
 
 
@@ -13,9 +13,9 @@ class ProductPrice:
 
     def __init__(
         self,
-        currency: Currency,
         price: Decimal,
         product: Product,
+        currency: Currency = Currency.USD,
         id: int | None = None,
     ):
         self.currency = currency
@@ -28,19 +28,18 @@ class ProductPrice:
         self.is_active = is_active
         return self.is_active
 
-    def get_price(self, currency: Currency | None) -> int:
-        _currency = currency or self.currency
-        return int(self.price * _currency.coef * 100)
+    def get_price(self, currency: ExchangeRate) -> int:
+        return int(self.price * currency.coef * 100)
 
     @classmethod
     def restore(
         cls,
-        currency: Currency,
         price: Decimal,
         product: Product,
         is_active: bool,
+        currency: Currency = Currency.USD,
         id: int | None = None,
     ) -> ProductPrice:
-        product_price = cls(currency=currency, price=price, product=product, id=id)
+        product_price = cls(price=price, product=product, currency=currency, id=id)
         product_price.is_active = is_active
         return product_price

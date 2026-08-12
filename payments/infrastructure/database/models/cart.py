@@ -1,6 +1,5 @@
 from django.db import models
 
-from payments.infrastructure.database.models.currency import CurrencyModel
 from payments.infrastructure.database.models.enums import CartStatusChoices
 from payments.infrastructure.database.models.product import (
     ProductModel,
@@ -9,11 +8,6 @@ from payments.infrastructure.database.models.product import (
 
 
 class CartModel(models.Model):
-    currency = models.ForeignKey(
-        CurrencyModel,
-        on_delete=models.PROTECT,
-        related_name="carts",
-    )
     status = models.CharField(
         max_length=20,
         choices=CartStatusChoices,

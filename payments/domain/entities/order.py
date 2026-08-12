@@ -2,10 +2,9 @@ from dataclasses import dataclass
 from enum import Enum
 
 from payments.domain.entities.cart import Cart
-from payments.domain.entities.currency import Currency
 from payments.domain.entities.discount import Discount
+from payments.domain.entities.exchange_rate import Currency
 from payments.domain.entities.order_item import OrderItem
-from payments.domain.exceptions import ProductCurrencyError
 
 
 class OrderStatus(Enum):
@@ -43,8 +42,6 @@ class Order:
         self.id = id
 
     def add(self, item: OrderItem):
-        if item.product_price.currency.currency != self.currency.currency:
-            raise ProductCurrencyError()
         self.items.append(item)
 
     @classmethod

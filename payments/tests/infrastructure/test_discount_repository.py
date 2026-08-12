@@ -33,6 +33,31 @@ def test_get_active(discount_repo, discount, inactive_discount, call):
 
 
 @pytest.mark.django_db
+def test_get_active_pagination_limit_and_offset(
+    discount_repo, discount, inactive_discount, call
+):
+    for name in ("Discount 1", "Discount 2", "Discount 3"):
+        entity = Discount(
+            name=name,
+            type=DiscountType.FIXED,
+            value=Decimal("1.00"),
+        )
+        call(discount_repo.save)(entity)
+
+    first_page = call(discount_repo.get_active)(limit=2, offset=0)
+    second_page = call(discount_repo.get_active)(limit=2, offset=2)
+
+    assert len(first_page) == 2
+    assert len(second_page) == 2
+
+    first_ids = {item.id for item in first_page}
+    second_ids = {item.id for item in second_page}
+    assert first_ids.isdisjoint(second_ids)
+    assert discount.id in first_ids | second_ids
+    assert inactive_discount.id not in first_ids | second_ids
+
+
+@pytest.mark.django_db
 def test_save_create_assigns_id(discount_repo, call):
     entity = Discount(
         name="New Discount",

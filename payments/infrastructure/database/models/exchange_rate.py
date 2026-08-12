@@ -3,7 +3,7 @@ from django.db import models
 from payments.infrastructure.database.models.enums import CurrencyChoices
 
 
-class CurrencyModel(models.Model):
+class ExchangeRateModel(models.Model):
     base_currency = models.CharField(
         max_length=3, choices=CurrencyChoices, default=CurrencyChoices.USD
     )
@@ -16,6 +16,6 @@ class CurrencyModel(models.Model):
             models.UniqueConstraint(
                 fields=["currency", "base_currency"],
                 condition=models.Q(is_active=True),
-                name="unique_active_currency",
+                name="unique_active_exchange_rate",
             ),
         ]

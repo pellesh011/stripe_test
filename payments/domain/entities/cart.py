@@ -2,11 +2,9 @@ from dataclasses import dataclass
 from enum import Enum
 
 from payments.domain.entities.cart_item import CartItem
-from payments.domain.entities.currency import Currency
 from payments.domain.exceptions import (
     CartItemNotFoundError,
     CartNotActiveError,
-    ProductCurrencyError,
 )
 
 
@@ -21,19 +19,15 @@ class CartStatus(Enum):
 @dataclass
 class Cart:
     id: int | None
-    currency: Currency
     items: list[CartItem]
     status: CartStatus
 
-    def __init__(self, currency: Currency, id: int | None = None):
+    def __init__(self, id: int | None = None):
         self.status = CartStatus.ACTIVE
-        self.currency = currency
         self.items = []
         self.id = id
 
     def add(self, item: CartItem):
-        if item.product_price.currency.currency != self.currency.currency:
-            raise ProductCurrencyError()
         self.items.append(item)
 
     def remove(self, item: CartItem):
@@ -50,12 +44,11 @@ class Cart:
     @classmethod
     def restore(
         cls,
-        currency: Currency,
         items: list[CartItem],
         status: CartStatus,
         id: int | None = None,
     ) -> Cart:
-        cart = cls(currency, id=id)
+        cart = cls(id=id)
 
         cart.items = items
         cart.status = status

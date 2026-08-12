@@ -1,7 +1,7 @@
 from payments.domain.entities.cart import Cart, CartStatus
 from payments.domain.entities.cart_item import CartItem
-from payments.domain.entities.currency import Currencies, Currency
 from payments.domain.entities.discount import Discount, DiscountType
+from payments.domain.entities.exchange_rate import Currency, ExchangeRate
 from payments.domain.entities.order import Order, OrderStatus
 from payments.domain.entities.order_item import OrderItem
 from payments.domain.entities.payment import Payment, PaymentStatus
@@ -13,8 +13,8 @@ from payments.domain.entities.payment_provider import PaymentProvider
 from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
 from payments.infrastructure.database.models.cart import CartItemModel, CartModel
-from payments.infrastructure.database.models.currency import CurrencyModel
 from payments.infrastructure.database.models.discount import DiscountModel
+from payments.infrastructure.database.models.exchange_rate import ExchangeRateModel
 from payments.infrastructure.database.models.order import OrderItemModel, OrderModel
 from payments.infrastructure.database.models.payment import PaymentModel
 from payments.infrastructure.database.models.payment_attempt import (
@@ -29,9 +29,9 @@ from payments.infrastructure.database.models.product import (
 )
 
 
-def currency_to_entity(model: CurrencyModel) -> Currency:
-    return Currency.restore(
-        currency=Currencies(model.currency),
+def exchange_rate_to_entity(model: ExchangeRateModel) -> ExchangeRate:
+    return ExchangeRate.restore(
+        currency=Currency(model.currency),
         coef=model.coef,
         is_active=model.is_active,
         id=model.id,
@@ -58,7 +58,7 @@ def product_to_entity(model: ProductModel) -> Product:
 
 def product_price_to_entity(model: ProductPriceModel) -> ProductPrice:
     return ProductPrice.restore(
-        currency=currency_to_entity(model.currency),
+        currency=Currency(model.currency),
         price=model.price,
         product=product_to_entity(model.product),
         is_active=model.is_active,
@@ -79,12 +79,13 @@ def order_item_to_entity(model: OrderItemModel) -> OrderItem:
         id=model.id,
         product=product_to_entity(model.product),
         product_price=product_price_to_entity(model.product_price),
+        exchange_rate=exchange_rate_to_entity(model.exchange_rate),
+        price=model.price,
     )
 
 
 def cart_to_entity(model: CartModel, items: list[CartItem]) -> Cart:
     return Cart.restore(
-        currency=currency_to_entity(model.currency),
         items=items,
         status=CartStatus(model.status),
         id=model.id,
@@ -100,7 +101,7 @@ def order_to_entity(
         discount_to_entity(model.discount) if model.discount is not None else None
     )
     return Order.restore(
-        currency=currency_to_entity(model.currency),
+        currency=Currency(model.currency),
         cart=cart,
         items=items,
         status=OrderStatus(model.status),
@@ -118,7 +119,7 @@ def payment_to_entity(model: PaymentModel, order: Order) -> Payment:
         id=model.id,
         order=order,
         amount=model.amount,
-        currency=currency_to_entity(model.currency),
+        currency=exchange_rate_to_entity(model.currency),
         status=PaymentStatus(model.status),
     )
 

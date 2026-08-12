@@ -1,6 +1,10 @@
 from django.db import models
 
-from payments.infrastructure.database.models.enums import OrderStatusChoices
+from payments.infrastructure.database.models.enums import (
+    CurrencyChoices,
+    OrderStatusChoices,
+)
+from payments.infrastructure.database.models.exchange_rate import ExchangeRateModel
 
 
 class OrderModel(models.Model):
@@ -10,10 +14,10 @@ class OrderModel(models.Model):
         related_name="order",
     )
 
-    currency = models.ForeignKey(
-        "CurrencyModel",
-        on_delete=models.PROTECT,
-        related_name="orders",
+    currency = models.CharField(
+        max_length=3,
+        choices=CurrencyChoices,
+        default=CurrencyChoices.USD,
     )
 
     discount = models.ForeignKey(
@@ -52,4 +56,15 @@ class OrderItemModel(models.Model):
         "ProductPriceModel",
         on_delete=models.PROTECT,
         related_name="order_items",
+    )
+
+    exchange_rate = models.ForeignKey(
+        ExchangeRateModel,
+        on_delete=models.PROTECT,
+        related_name="order_items",
+    )
+
+    price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
     )
