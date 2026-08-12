@@ -11,16 +11,19 @@ from payments.domain.repositories.cart import CartRepository
 from payments.domain.repositories.cart_item import CartItemRepository
 from payments.domain.repositories.product import ProductRepository
 from payments.domain.repositories.product_price import ProductPriceRepository
+from payments.domain.repositories.uow import UnitOfWork
 
 
 class AddToCartUseCase:
     def __init__(
         self,
+        uow: UnitOfWork,
         carts: CartRepository,
         cart_items: CartItemRepository,
         products: ProductRepository,
         product_prices: ProductPriceRepository,
     ):
+        self.uow = uow
         self.carts = carts
         self.cart_items = cart_items
         self.products = products
@@ -50,9 +53,9 @@ class AddToCartUseCase:
             cart=cart,
         )
         cart.add(cart_item)
-
-        if cart.id is None:
-            self.carts.save(cart)
-        self.cart_items.save(cart_item)
+        with self.uow:
+            if cart.id is None:
+                self.carts.save(cart)
+            self.cart_items.save(cart_item)
 
         return cart_item

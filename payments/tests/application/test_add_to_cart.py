@@ -11,10 +11,12 @@ from payments.domain.exceptions import (
     ProductNotActiveError,
     ProductPriceNotActiveError,
 )
+from payments.infrastructure.database.uow import DjangoUnitOfWork
 
 
 def _build_use_case(cart_repo, cart_item_repo, product_repo, product_price_repo):
     return AddToCartUseCase(
+        uow=DjangoUnitOfWork(),
         carts=cart_repo,
         cart_items=cart_item_repo,
         products=product_repo,
