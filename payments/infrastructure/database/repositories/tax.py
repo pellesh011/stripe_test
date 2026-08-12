@@ -8,22 +8,22 @@ from payments.infrastructure.database.repositories.mappers import tax_to_entity
 
 
 class TaxRepositoryImpl(TaxRepository):
-    async def get_by_id(self, id: int) -> Tax:
+    def get_by_id(self, id: int) -> Tax:
         try:
-            model = await TaxModel.objects.aget(id=id)
+            model = TaxModel.objects.get(id=id)
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
         return tax_to_entity(model)
 
-    async def save(self, tax: Tax) -> None:
+    def save(self, tax: Tax) -> None:
         if tax.id is None:
-            model = await TaxModel.objects.acreate(
+            model = TaxModel.objects.create(
                 name=tax.name,
                 rate=tax.rate,
             )
             tax.id = model.id
         else:
-            await TaxModel.objects.filter(id=tax.id).aupdate(
+            TaxModel.objects.filter(id=tax.id).update(
                 name=tax.name,
                 rate=tax.rate,
             )
