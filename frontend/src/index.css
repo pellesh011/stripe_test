@@ -1,0 +1,100 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #1f2933;
+  background: #f5f7fa;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.app__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.app__currencies {
+  display: flex;
+  gap: 8px;
+}
+
+.app__currency {
+  padding: 6px 14px;
+  border: 1px solid #cbd2d9;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.app__currency[data-active="true"] {
+  border-color: #1b6ef3;
+  background: #1b6ef3;
+  color: #fff;
+}
+
+.app__status {
+  padding: 16px;
+  text-align: center;
+  color: #52606d;
+}
+
+.app__status--error {
+  color: #b42318;
+}
+
+.app__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #e4e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.card__name {
+  margin: 0;
+  font-size: 18px;
+}
+
+.card__price {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.card__buy {
+  margin-top: auto;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #1b6ef3;
+  color: #fff;
+  cursor: pointer;
+}
+
+.card__buy:disabled {
+  background: #cbd2d9;
+  cursor: not-allowed;
+}
+
+.card__message {
+  margin: 0;
+  font-size: 13px;
+  color: #0967d2;
+}
