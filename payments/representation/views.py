@@ -53,7 +53,7 @@ async def get_product_list(request) -> JsonResponse:
             status=400,
         )
 
-    currency = request.GET.get("currency") or Currency.USD.value
+    currency = request.GET.get("currency") or None
     if currency is not None and currency not in {item.value for item in Currency}:
         return JsonResponse(
             {
