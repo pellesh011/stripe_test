@@ -70,8 +70,5 @@ class ProductPriceRepositoryImpl(ProductPriceRepository):
             product_price.id = model.id
         else:
             ProductPriceModel.objects.filter(id=product_price.id).update(
-                product_id=product_price.product.id,
-                currency=product_price.currency.value,
-                price=product_price.price,
                 is_active=product_price.is_active,
             )
