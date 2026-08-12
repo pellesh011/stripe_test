@@ -140,9 +140,7 @@ def test_get_active_by_product_ids_multiple_products(
 
 @pytest.mark.django_db
 def test_save_create_assigns_id(product_price_repo, product, call):
-    entity = ProductPrice(
-        currency=Currency.EUR, price=Decimal("3.99"), product=product
-    )
+    entity = ProductPrice(currency=Currency.EUR, price=Decimal("3.99"), product=product)
     assert entity.id is None
 
     call(product_price_repo.save)(entity)
