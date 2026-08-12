@@ -34,5 +34,9 @@ class InvalidPaymentStatusTransition(Exception):
     pass
 
 
+class PaymentCurrencyMismatchError(Exception):
+    pass
+
+
 class EntityNotFoundError(Exception):
     pass

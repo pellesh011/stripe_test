@@ -3,20 +3,22 @@ from decimal import Decimal
 import pytest
 
 from payments.domain.entities.cart import Cart
-from payments.domain.entities.exchange_rate import Currency, ExchangeRate
+from payments.domain.entities.exchange_rate import Currency
 from payments.domain.entities.order import Order
 from payments.domain.entities.payment import Payment, PaymentStatus
-from payments.domain.exceptions import InvalidPaymentStatusTransition
+from payments.domain.exceptions import (
+    InvalidPaymentStatusTransition,
+    PaymentCurrencyMismatchError,
+)
 
 
 def make_payment() -> Payment:
-    test_exchange_rate = ExchangeRate(currency=Currency.USD, coef=Decimal(1.0))
     test_cart = Cart()
     test_order = Order(currency=Currency.USD, cart=test_cart)
     return Payment(
         order=test_order,
         amount=Decimal("10.00"),
-        currency=test_exchange_rate,
+        currency=Currency.USD,
     )
 
 
@@ -40,18 +42,17 @@ def payment_in_state(status: PaymentStatus) -> Payment:
 
 
 def test_payment_create():
-    test_exchange_rate = ExchangeRate(currency=Currency.USD, coef=Decimal(1.0))
     test_cart = Cart()
     test_order = Order(currency=Currency.USD, cart=test_cart)
 
     test_payment = Payment(
-        order=test_order, amount=Decimal("10.00"), currency=test_exchange_rate
+        order=test_order, amount=Decimal("10.00"), currency=Currency.USD
     )
 
     assert test_payment.status == PaymentStatus.CREATED
     assert test_payment.order == test_order
     assert test_payment.amount == Decimal("10.00")
-    assert test_payment.currency == test_exchange_rate
+    assert test_payment.currency == Currency.USD
     assert test_payment.id is None
 
 
@@ -102,7 +103,6 @@ def test_payment_invalid_status_transition(current, target):
 
 
 def test_payment_restore():
-    test_exchange_rate = ExchangeRate(currency=Currency.USD, coef=Decimal(1.0))
     test_cart = Cart()
     test_order = Order(currency=Currency.USD, cart=test_cart)
 
@@ -110,12 +110,22 @@ def test_payment_restore():
         id=1,
         order=test_order,
         amount=Decimal("10.00"),
-        currency=test_exchange_rate,
+        currency=Currency.USD,
         status=PaymentStatus.PAID,
     )
 
     assert restored.id == 1
     assert restored.order == test_order
     assert restored.amount == Decimal("10.00")
-    assert restored.currency == test_exchange_rate
+    assert restored.currency == Currency.USD
     assert restored.status == PaymentStatus.PAID
+
+
+def test_payment_currency_mismatch():
+    test_cart = Cart()
+    test_order = Order(currency=Currency.USD, cart=test_cart)
+
+    with pytest.raises(PaymentCurrencyMismatchError):
+        Payment(
+            order=test_order, amount=Decimal("10.00"), currency=Currency.EUR
+        )

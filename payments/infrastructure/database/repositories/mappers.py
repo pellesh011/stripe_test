@@ -119,7 +119,7 @@ def payment_to_entity(model: PaymentModel, order: Order) -> Payment:
         id=model.id,
         order=order,
         amount=model.amount,
-        currency=exchange_rate_to_entity(model.currency),
+        currency=Currency(model.currency),
         status=PaymentStatus(model.status),
     )
 
