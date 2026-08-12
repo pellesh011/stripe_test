@@ -3,7 +3,6 @@ from types import TracebackType
 
 
 class UnitOfWork(ABC):
-
     @abstractmethod
     def __enter__(self) -> UnitOfWork: ...
 

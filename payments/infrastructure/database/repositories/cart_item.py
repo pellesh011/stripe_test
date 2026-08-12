@@ -13,9 +13,9 @@ from payments.infrastructure.database.repositories.mappers import cart_item_to_e
 class CartItemRepositoryImpl(CartItemRepository):
     def get_by_id(self, id: int) -> CartItem:
         try:
-            model = CartItemModel.objects.select_related(
-                *CART_ITEM_SELECT_RELATED
-            ).get(id=id)
+            model = CartItemModel.objects.select_related(*CART_ITEM_SELECT_RELATED).get(
+                id=id
+            )
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
         return cart_item_to_entity(model)

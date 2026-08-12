@@ -39,9 +39,7 @@ def test_get_active(exchange_rate_repo, exchange_rate):
 
 
 @pytest.mark.django_db
-def test_get_active_pagination_limit_and_offset(
-    exchange_rate_repo, exchange_rate
-):
+def test_get_active_pagination_limit_and_offset(exchange_rate_repo, exchange_rate):
     for enum in (Currency.RUB, Currency.USD):
         entity = ExchangeRate(currency=enum, coef=Decimal("1.00"))
         exchange_rate_repo.save(entity)

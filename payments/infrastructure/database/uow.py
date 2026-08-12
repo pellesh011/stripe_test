@@ -4,7 +4,6 @@ from payments.domain.repositories.uow import UnitOfWork
 
 
 class DjangoUnitOfWork(UnitOfWork):
-
     def __enter__(self):
         self.transaction = transaction.atomic()
         self.transaction.__enter__()
