@@ -7,6 +7,7 @@ from payments.infrastructure.database.repositories.loaders import build_payment
 PAYMENT_SELECT_RELATED = (
     "order__cart",
     "order__discount",
+    "order__tax",
 )
 
 

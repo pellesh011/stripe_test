@@ -11,6 +11,21 @@ def test_get_by_id_not_found(cart_repo):
 
 
 @pytest.mark.django_db
+def test_get_by_id_for_update(cart_repo, cart):
+    assert cart.id is not None
+    loaded = cart_repo.get_by_id_for_update(cart.id)
+
+    assert loaded.id == cart.id
+    assert loaded.status is CartStatus.ACTIVE
+
+
+@pytest.mark.django_db
+def test_get_by_id_for_update_not_found(cart_repo):
+    with pytest.raises(EntityNotFoundError):
+        cart_repo.get_by_id_for_update(9999)
+
+
+@pytest.mark.django_db
 def test_save_create_assigns_id(cart_repo):
     entity = Cart()
     assert entity.id is None

@@ -16,6 +16,7 @@ PAYMENT_ATTEMPT_SELECT_RELATED = (
     "provider",
     "payment__order__cart",
     "payment__order__discount",
+    "payment__order__tax",
 )
 
 

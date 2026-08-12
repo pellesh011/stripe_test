@@ -15,6 +15,13 @@ class CartRepositoryImpl(CartRepository):
             raise EntityNotFoundError() from None
         return build_cart(model)
 
+    def get_by_id_for_update(self, id: int) -> Cart:
+        try:
+            model = CartModel.objects.select_for_update().get(id=id)
+        except ObjectDoesNotExist:
+            raise EntityNotFoundError() from None
+        return build_cart(model)
+
     def save(self, cart: Cart) -> None:
         if cart.id is None:
             model = CartModel.objects.create(

@@ -1,0 +1,118 @@
+from decimal import Decimal
+
+from payments.application.dto.checkout import CheckoutDTO
+from payments.domain.entities.cart import Cart, CartStatus
+from payments.domain.entities.exchange_rate import Currency, ExchangeRate
+from payments.domain.entities.order import Order
+from payments.domain.entities.order_item import OrderItem
+from payments.domain.entities.payment import Payment
+from payments.domain.entities.payment_attempts import PaymentAttempt
+from payments.domain.exceptions import (
+    CartEmptyError,
+    CartNotActiveError,
+    ProductNotActiveError,
+    ProductPriceNotActiveError,
+)
+from payments.domain.repositories.cart import CartRepository
+from payments.domain.repositories.discount import DiscountRepository
+from payments.domain.repositories.exchange_rate import ExchangeRateRepository
+from payments.domain.repositories.order import OrderRepository
+from payments.domain.repositories.order_item import OrderItemRepository
+from payments.domain.repositories.payment import PaymentRepository
+from payments.domain.repositories.payment_attempt import PaymentAttemptRepository
+from payments.domain.repositories.payment_provider import PaymentProviderRepository
+from payments.domain.repositories.tax import TaxRepository
+from payments.domain.repositories.uow import UnitOfWork
+
+
+class CheckoutUseCase:
+    def __init__(
+        self,
+        uow: UnitOfWork,
+        carts: CartRepository,
+        orders: OrderRepository,
+        order_items: OrderItemRepository,
+        exchange_rates: ExchangeRateRepository,
+        discounts: DiscountRepository,
+        taxes: TaxRepository,
+        payments: PaymentRepository,
+        payment_attempts: PaymentAttemptRepository,
+        payment_providers: PaymentProviderRepository,
+    ):
+        self.uow = uow
+        self.carts = carts
+        self.orders = orders
+        self.order_items = order_items
+        self.exchange_rates = exchange_rates
+        self.discounts = discounts
+        self.taxes = taxes
+        self.payments = payments
+        self.payment_attempts = payment_attempts
+        self.payment_providers = payment_providers
+
+    def execute(self, data: CheckoutDTO) -> Order:
+        currency = Currency(data.currency)
+        with self.uow:
+            cart = self.carts.get_by_id_for_update(data.cart_id)
+            self._validate(cart)
+
+            exchange_rate = self.exchange_rates.get_active_by_code(currency)
+            order = self._create_order(cart, currency, exchange_rate)
+
+            if data.tax_id is not None:
+                order.add_tax(self.taxes.get_by_id(data.tax_id))
+
+            if data.discount is not None:
+                order.add_discount(self.discounts.get_active_by_name(data.discount))
+
+            self.orders.save(order)
+            for item in order.items:
+                self.order_items.save(item)
+
+            cart.status = CartStatus.CONVERTED
+            self.carts.save(cart)
+
+            payment = Payment(
+                order=order,
+                amount=order.total(),
+                currency=order.currency,
+            )
+            self.payments.save(payment)
+
+            provider = self.payment_providers.get_by_id(data.provider_id)
+            payment_attempt = PaymentAttempt(provider=provider, payment=payment)
+            self.payment_attempts.save(payment_attempt)
+
+        return order
+
+    @staticmethod
+    def _validate(cart: Cart) -> None:
+        if cart.status is not CartStatus.ACTIVE:
+            raise CartNotActiveError()
+        if not cart.items:
+            raise CartEmptyError()
+        for item in cart.items:
+            if not item.product.is_active:
+                raise ProductNotActiveError()
+            if not item.product_price.is_active:
+                raise ProductPriceNotActiveError()
+
+    @staticmethod
+    def _create_order(
+        cart: Cart, currency: Currency, exchange_rate: ExchangeRate
+    ) -> Order:
+        order = Order(currency=currency, cart=cart)
+        for cart_item in cart.items:
+            price = (cart_item.product_price.price * exchange_rate.coef).quantize(
+                Decimal("0.01")
+            )
+            order.add(
+                OrderItem(
+                    product=cart_item.product,
+                    product_price=cart_item.product_price,
+                    exchange_rate=exchange_rate,
+                    price=price,
+                    order=order,
+                )
+            )
+        return order
