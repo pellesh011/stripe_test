@@ -14,6 +14,7 @@ from payments.domain.entities.payment_attempts import PaymentAttempt
 from payments.domain.entities.payment_provider import PaymentProvider
 from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
+from payments.domain.entities.tax import Tax
 from payments.infrastructure.database.repositories.cart import CartRepositoryImpl
 from payments.infrastructure.database.repositories.cart_item import (
     CartItemRepositoryImpl,
@@ -43,6 +44,7 @@ from payments.infrastructure.database.repositories.product import (
 from payments.infrastructure.database.repositories.product_price import (
     ProductPriceRepositoryImpl,
 )
+from payments.infrastructure.database.repositories.tax import TaxRepositoryImpl
 
 
 @pytest.fixture
@@ -58,6 +60,11 @@ def exchange_rate_repo() -> ExchangeRateRepositoryImpl:
 @pytest.fixture
 def discount_repo() -> DiscountRepositoryImpl:
     return DiscountRepositoryImpl()
+
+
+@pytest.fixture
+def tax_repo() -> TaxRepositoryImpl:
+    return TaxRepositoryImpl()
 
 
 @pytest.fixture
@@ -136,6 +143,13 @@ def inactive_discount(discount_repo, db, call) -> Discount:
 
 
 @pytest.fixture
+def tax(tax_repo, db, call) -> Tax:
+    entity = Tax(name="VAT", rate=20)
+    call(tax_repo.save)(entity)
+    return entity
+
+
+@pytest.fixture
 def product(product_repo, db, call) -> Product:
     entity = Product(name="Test Product", is_active=True)
     call(product_repo.save)(entity)
@@ -202,8 +216,8 @@ def order_item(
 
 
 @pytest.fixture
-def payment(payment_repo, order, exchange_rate, db) -> Payment:
-    entity = Payment(order=order, amount=Decimal("10.00"), currency=exchange_rate)
+def payment(payment_repo, order, db) -> Payment:
+    entity = Payment(order=order, amount=Decimal("10.00"), currency=Currency.EUR)
     payment_repo.save(entity)
     return entity
 

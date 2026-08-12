@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import pytest
 
+from payments.domain.entities.exchange_rate import Currency
 from payments.domain.entities.payment import Payment, PaymentStatus
 from payments.domain.exceptions import EntityNotFoundError
 
@@ -13,8 +14,8 @@ def test_get_by_id_not_found(payment_repo):
 
 
 @pytest.mark.django_db
-def test_save_create_assigns_id(payment_repo, order, exchange_rate):
-    entity = Payment(order=order, amount=Decimal("25.00"), currency=exchange_rate)
+def test_save_create_assigns_id(payment_repo, order):
+    entity = Payment(order=order, amount=Decimal("25.00"), currency=Currency.EUR)
     assert entity.id is None
 
     payment_repo.save(entity)
@@ -30,7 +31,7 @@ def test_get_by_id_returns_full_aggregate(payment_repo, payment):
     assert loaded.id == payment.id
     assert loaded.amount == Decimal("10.00")
     assert loaded.status is PaymentStatus.CREATED
-    assert loaded.currency.currency == payment.currency.currency
+    assert loaded.currency == payment.currency
     assert loaded.order.id == payment.order.id
     assert loaded.order.cart.id == payment.order.cart.id
 
@@ -44,11 +45,11 @@ def test_get_by_order_id(payment_repo, payment):
 
 
 @pytest.mark.django_db
-def test_get_by_order_id_returns_latest(payment_repo, order, exchange_rate):
+def test_get_by_order_id_returns_latest(payment_repo, order):
     assert order.id is not None
-    first = Payment(order=order, amount=Decimal("1.00"), currency=exchange_rate)
+    first = Payment(order=order, amount=Decimal("1.00"), currency=Currency.EUR)
     payment_repo.save(first)
-    second = Payment(order=order, amount=Decimal("2.00"), currency=exchange_rate)
+    second = Payment(order=order, amount=Decimal("2.00"), currency=Currency.EUR)
     payment_repo.save(second)
 
     loaded = payment_repo.get_by_order_id(order.id)

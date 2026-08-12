@@ -10,6 +10,14 @@ class DiscountValueError(Exception):
     pass
 
 
+class TaxNameError(Exception):
+    pass
+
+
+class TaxValueError(Exception):
+    pass
+
+
 class ProductNameError(Exception):
     pass
 
@@ -31,6 +39,10 @@ class CartItemNotFoundError(Exception):
 
 
 class InvalidPaymentStatusTransition(Exception):
+    pass
+
+
+class PaymentCurrencyMismatchError(Exception):
     pass
 
 
