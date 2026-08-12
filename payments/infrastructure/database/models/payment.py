@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.db import models
 
-from payments.infrastructure.database.models.enums import PaymentStatusChoices
-from payments.infrastructure.database.models.exchange_rate import ExchangeRateModel
+from payments.infrastructure.database.models.enums import (
+    CurrencyChoices,
+    PaymentStatusChoices,
+)
 from payments.infrastructure.database.models.order import OrderModel
 
 
@@ -26,10 +28,10 @@ class PaymentModel(models.Model):
         decimal_places=2,
     )
 
-    currency = models.ForeignKey(
-        ExchangeRateModel,
-        on_delete=models.PROTECT,
-        related_name="payments",
+    currency = models.CharField(
+        max_length=3,
+        choices=CurrencyChoices,
+        default=CurrencyChoices.USD,
     )
 
     status = models.CharField(

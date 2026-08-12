@@ -5,7 +5,6 @@ from payments.infrastructure.database.models.payment import PaymentModel
 from payments.infrastructure.database.repositories.loaders import build_payment
 
 PAYMENT_SELECT_RELATED = (
-    "currency",
     "order__cart",
     "order__discount",
 )
@@ -34,13 +33,12 @@ class PaymentRepositoryImpl(PaymentRepository):
 
     def save(self, payment: Payment) -> None:
         assert payment.order.id is not None
-        assert payment.currency.id is not None
 
         if payment.id is None:
             model = PaymentModel.objects.create(
                 order_id=payment.order.id,
                 amount=payment.amount,
-                currency_id=payment.currency.id,
+                currency=payment.currency.value,
                 status=payment.status.value,
             )
             payment.id = model.id
@@ -48,6 +46,6 @@ class PaymentRepositoryImpl(PaymentRepository):
             PaymentModel.objects.filter(id=payment.id).update(
                 order_id=payment.order.id,
                 amount=payment.amount,
-                currency_id=payment.currency.id,
+                currency=payment.currency.value,
                 status=payment.status.value,
             )

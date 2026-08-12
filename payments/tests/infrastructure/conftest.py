@@ -202,8 +202,8 @@ def order_item(
 
 
 @pytest.fixture
-def payment(payment_repo, order, exchange_rate, db) -> Payment:
-    entity = Payment(order=order, amount=Decimal("10.00"), currency=exchange_rate)
+def payment(payment_repo, order, db) -> Payment:
+    entity = Payment(order=order, amount=Decimal("10.00"), currency=Currency.EUR)
     payment_repo.save(entity)
     return entity
 
