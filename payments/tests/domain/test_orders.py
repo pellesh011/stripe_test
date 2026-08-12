@@ -2,11 +2,23 @@ from decimal import Decimal
 
 from payments.domain.entities.cart import Cart
 from payments.domain.entities.discount import Discount, DiscountType
-from payments.domain.entities.exchange_rate import Currency
+from payments.domain.entities.exchange_rate import Currency, ExchangeRate
 from payments.domain.entities.order import Order, OrderStatus
 from payments.domain.entities.order_item import OrderItem
 from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
+
+
+def _make_order_item(product_name: str, price: Decimal) -> OrderItem:
+    product = Product(product_name, True)
+    product_price = ProductPrice(currency=Currency.USD, price=price, product=product)
+    exchange_rate = ExchangeRate(currency=Currency.USD, coef=Decimal("1.0"))
+    return OrderItem(
+        product=product,
+        product_price=product_price,
+        exchange_rate=exchange_rate,
+        price=price * exchange_rate.coef,
+    )
 
 
 def test_order_create():
@@ -36,19 +48,8 @@ def test_order_add_order_item():
     test_cart = Cart()
     test_order = Order(currency=Currency.USD, cart=test_cart)
 
-    test_product = Product("test name", True)
-    test_product_price = ProductPrice(
-        currency=Currency.USD, price=Decimal(100.10), product=test_product
-    )
-    test_order_item = OrderItem(product=test_product, product_price=test_product_price)
-
-    test_product_2 = Product("test name 2", True)
-    test_product_price_2 = ProductPrice(
-        currency=Currency.USD, price=Decimal(101.10), product=test_product_2
-    )
-    test_order_item_2 = OrderItem(
-        product=test_product_2, product_price=test_product_price_2
-    )
+    test_order_item = _make_order_item("test name", Decimal("100.10"))
+    test_order_item_2 = _make_order_item("test name 2", Decimal("101.10"))
 
     test_order.add(test_order_item)
     test_order.add(test_order_item_2)
@@ -60,19 +61,19 @@ def test_order_add_different_currencies_order_item():
     test_cart = Cart()
     test_order = Order(currency=Currency.USD, cart=test_cart)
 
-    test_product = Product("test name", True)
-    test_product_price = ProductPrice(
-        currency=Currency.EUR, price=Decimal(100.10), product=test_product
+    product = Product("test name", True)
+    product_price = ProductPrice(
+        currency=Currency.EUR, price=Decimal("100.10"), product=product
     )
-    test_order_item = OrderItem(product=test_product, product_price=test_product_price)
+    exchange_rate = ExchangeRate(currency=Currency.EUR, coef=Decimal("1.10"))
+    test_order_item = OrderItem(
+        product=product,
+        product_price=product_price,
+        exchange_rate=exchange_rate,
+        price=product_price.price * exchange_rate.coef,
+    )
 
-    test_product_2 = Product("test name 2", True)
-    test_product_price_2 = ProductPrice(
-        currency=Currency.USD, price=Decimal(101.10), product=test_product_2
-    )
-    test_order_item_2 = OrderItem(
-        product=test_product_2, product_price=test_product_price_2
-    )
+    test_order_item_2 = _make_order_item("test name 2", Decimal("101.10"))
 
     test_order.add(test_order_item)
     test_order.add(test_order_item_2)
@@ -88,11 +89,7 @@ def test_order_restore():
         value=Decimal("10.00"),
     )
 
-    test_product = Product("test name", True)
-    test_product_price = ProductPrice(
-        currency=Currency.USD, price=Decimal(100.10), product=test_product
-    )
-    test_order_item = OrderItem(product=test_product, product_price=test_product_price)
+    test_order_item = _make_order_item("test name", Decimal("100.10"))
 
     restored = Order.restore(
         currency=Currency.USD,

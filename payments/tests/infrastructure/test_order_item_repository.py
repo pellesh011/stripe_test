@@ -13,8 +13,13 @@ def test_get_by_id_not_found(order_item_repo):
 
 
 @pytest.mark.django_db
-def test_save_requires_order(order_item_repo, product, product_price):
-    entity = OrderItem(product=product, product_price=product_price)
+def test_save_requires_order(order_item_repo, product, product_price, exchange_rate):
+    entity = OrderItem(
+        product=product,
+        product_price=product_price,
+        exchange_rate=exchange_rate,
+        price=product_price.price * exchange_rate.coef,
+    )
 
     with pytest.raises(ValueError, match="order"):
         order_item_repo.save(entity)
@@ -26,8 +31,15 @@ def test_save_create_assigns_id(
     order,
     product,
     product_price,
+    exchange_rate,
 ):
-    entity = OrderItem(product=product, product_price=product_price, order=order)
+    entity = OrderItem(
+        product=product,
+        product_price=product_price,
+        exchange_rate=exchange_rate,
+        price=product_price.price * exchange_rate.coef,
+        order=order,
+    )
     assert entity.id is None
 
     order_item_repo.save(entity)
@@ -43,6 +55,9 @@ def test_get_by_id_returns_full_item(order_item_repo, order_item):
     assert loaded.id == order_item.id
     assert loaded.product.name == order_item.product.name
     assert loaded.product_price.price == order_item.product_price.price
+    assert loaded.exchange_rate.currency == order_item.exchange_rate.currency
+    assert loaded.exchange_rate.coef == order_item.exchange_rate.coef
+    assert loaded.price == order_item.price
 
 
 @pytest.mark.django_db
@@ -61,9 +76,16 @@ def test_get_by_order_id_pagination_limit_and_offset(
     order,
     product,
     product_price,
+    exchange_rate,
 ):
     for _ in range(2):
-        entity = OrderItem(product=product, product_price=product_price, order=order)
+        entity = OrderItem(
+            product=product,
+            product_price=product_price,
+            exchange_rate=exchange_rate,
+            price=product_price.price * exchange_rate.coef,
+            order=order,
+        )
         order_item_repo.save(entity)
 
     assert order.id is not None
@@ -87,6 +109,7 @@ def test_get_by_order_id_filters_by_order(
     order,
     product,
     product_price,
+    exchange_rate,
     call,
 ):
     other_cart = Cart()
@@ -97,6 +120,8 @@ def test_get_by_order_id_filters_by_order(
     other_item = OrderItem(
         product=product,
         product_price=product_price,
+        exchange_rate=exchange_rate,
+        price=product_price.price * exchange_rate.coef,
         order=other_order,
     )
     order_item_repo.save(other_item)

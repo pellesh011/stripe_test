@@ -5,7 +5,7 @@ from payments.domain.exceptions import EntityNotFoundError
 from payments.domain.repositories.order_item import OrderItemRepository
 from payments.infrastructure.database.models.order import OrderItemModel
 from payments.infrastructure.database.repositories.loaders import (
-    CART_ITEM_SELECT_RELATED,
+    ORDER_ITEM_SELECT_RELATED,
 )
 from payments.infrastructure.database.repositories.mappers import order_item_to_entity
 
@@ -14,7 +14,7 @@ class OrderItemRepositoryImpl(OrderItemRepository):
     def get_by_id(self, id: int) -> OrderItem:
         try:
             model = OrderItemModel.objects.select_related(
-                *CART_ITEM_SELECT_RELATED
+                *ORDER_ITEM_SELECT_RELATED
             ).get(id=id)
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
@@ -25,7 +25,7 @@ class OrderItemRepositoryImpl(OrderItemRepository):
     ) -> list[OrderItem]:
         qs = (
             OrderItemModel.objects.filter(order_id=order_id)
-            .select_related(*CART_ITEM_SELECT_RELATED)
+            .select_related(*ORDER_ITEM_SELECT_RELATED)
             .order_by("id")[offset : offset + limit]
         )
         return [order_item_to_entity(model) for model in qs]
@@ -37,12 +37,15 @@ class OrderItemRepositoryImpl(OrderItemRepository):
         assert order_item.order.id is not None
         assert order_item.product.id is not None
         assert order_item.product_price.id is not None
+        assert order_item.exchange_rate.id is not None
 
         if order_item.id is None:
             model = OrderItemModel.objects.create(
                 order_id=order_item.order.id,
                 product_id=order_item.product.id,
                 product_price_id=order_item.product_price.id,
+                exchange_rate_id=order_item.exchange_rate.id,
+                price=order_item.price,
             )
             order_item.id = model.id
         else:
@@ -50,4 +53,6 @@ class OrderItemRepositoryImpl(OrderItemRepository):
                 order_id=order_item.order.id,
                 product_id=order_item.product.id,
                 product_price_id=order_item.product_price.id,
+                exchange_rate_id=order_item.exchange_rate.id,
+                price=order_item.price,
             )

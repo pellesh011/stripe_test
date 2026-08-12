@@ -4,6 +4,7 @@ from payments.infrastructure.database.models.enums import (
     CurrencyChoices,
     OrderStatusChoices,
 )
+from payments.infrastructure.database.models.exchange_rate import ExchangeRateModel
 
 
 class OrderModel(models.Model):
@@ -55,4 +56,15 @@ class OrderItemModel(models.Model):
         "ProductPriceModel",
         on_delete=models.PROTECT,
         related_name="order_items",
+    )
+
+    exchange_rate = models.ForeignKey(
+        ExchangeRateModel,
+        on_delete=models.PROTECT,
+        related_name="order_items",
+    )
+
+    price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
     )

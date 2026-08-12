@@ -187,8 +187,16 @@ def order(order_repo, cart, discount, db) -> Order:
 
 
 @pytest.fixture
-def order_item(order_item_repo, order, product, product_price, db) -> OrderItem:
-    entity = OrderItem(product=product, product_price=product_price, order=order)
+def order_item(
+    order_item_repo, order, product, product_price, exchange_rate, db
+) -> OrderItem:
+    entity = OrderItem(
+        product=product,
+        product_price=product_price,
+        exchange_rate=exchange_rate,
+        price=product_price.price * exchange_rate.coef,
+        order=order,
+    )
     order_item_repo.save(entity)
     return entity
 

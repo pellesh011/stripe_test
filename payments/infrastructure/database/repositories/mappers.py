@@ -79,6 +79,8 @@ def order_item_to_entity(model: OrderItemModel) -> OrderItem:
         id=model.id,
         product=product_to_entity(model.product),
         product_price=product_price_to_entity(model.product_price),
+        exchange_rate=exchange_rate_to_entity(model.exchange_rate),
+        price=model.price,
     )
 
 
