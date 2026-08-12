@@ -10,6 +10,14 @@ class DiscountValueError(Exception):
     pass
 
 
+class TaxNameError(Exception):
+    pass
+
+
+class TaxValueError(Exception):
+    pass
+
+
 class ProductNameError(Exception):
     pass
 
