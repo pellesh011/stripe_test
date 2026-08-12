@@ -44,7 +44,7 @@ def _parse_pagination(data, parameter: str, default: int) -> int | None:
     return value
 
 
-async def get_product_list(request) -> JsonResponse:
+def get_product_list(request) -> JsonResponse:
     limit = _parse_pagination(request.GET, "limit", 10)
     offset = _parse_pagination(request.GET, "offset", 0)
     if limit is None or offset is None:
@@ -67,7 +67,7 @@ async def get_product_list(request) -> JsonResponse:
         products=ProductRepositoryImpl(),
         product_prices=ProductPriceRepositoryImpl(),
     )
-    products = await use_case.execute(
+    products = use_case.execute(
         GetProductListDTO(
             pagination=PaginationDTO(limit=limit, offset=offset),
             is_active=True,

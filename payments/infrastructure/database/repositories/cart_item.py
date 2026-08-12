@@ -11,16 +11,16 @@ from payments.infrastructure.database.repositories.mappers import cart_item_to_e
 
 
 class CartItemRepositoryImpl(CartItemRepository):
-    async def get_by_id(self, id: int) -> CartItem:
+    def get_by_id(self, id: int) -> CartItem:
         try:
-            model = await CartItemModel.objects.select_related(
+            model = CartItemModel.objects.select_related(
                 *CART_ITEM_SELECT_RELATED
-            ).aget(id=id)
+            ).get(id=id)
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
         return cart_item_to_entity(model)
 
-    async def get_by_cart_id(
+    def get_by_cart_id(
         self, cart_id: int, limit: int = 10, offset: int = 0
     ) -> list[CartItem]:
         qs = (
@@ -28,9 +28,9 @@ class CartItemRepositoryImpl(CartItemRepository):
             .select_related(*CART_ITEM_SELECT_RELATED)
             .order_by("id")[offset : offset + limit]
         )
-        return [cart_item_to_entity(model) async for model in qs]
+        return [cart_item_to_entity(model) for model in qs]
 
-    async def save(self, cart_item: CartItem) -> None:
+    def save(self, cart_item: CartItem) -> None:
         if cart_item.cart is None:
             raise ValueError("cart_item must reference a cart to be saved")
 
@@ -39,14 +39,14 @@ class CartItemRepositoryImpl(CartItemRepository):
         assert cart_item.product_price.id is not None
 
         if cart_item.id is None:
-            model = await CartItemModel.objects.acreate(
+            model = CartItemModel.objects.create(
                 cart_id=cart_item.cart.id,
                 product_id=cart_item.product.id,
                 product_price_id=cart_item.product_price.id,
             )
             cart_item.id = model.id
         else:
-            await CartItemModel.objects.filter(id=cart_item.id).aupdate(
+            CartItemModel.objects.filter(id=cart_item.id).update(
                 cart_id=cart_item.cart.id,
                 product_id=cart_item.product.id,
                 product_price_id=cart_item.product_price.id,

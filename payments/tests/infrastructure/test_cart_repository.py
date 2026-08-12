@@ -5,25 +5,25 @@ from payments.domain.exceptions import EntityNotFoundError
 
 
 @pytest.mark.django_db
-def test_get_by_id_not_found(cart_repo, call):
+def test_get_by_id_not_found(cart_repo):
     with pytest.raises(EntityNotFoundError):
-        call(cart_repo.get_by_id)(9999)
+        cart_repo.get_by_id(9999)
 
 
 @pytest.mark.django_db
-def test_save_create_assigns_id(cart_repo, call):
+def test_save_create_assigns_id(cart_repo):
     entity = Cart()
     assert entity.id is None
 
-    call(cart_repo.save)(entity)
+    cart_repo.save(entity)
 
     assert entity.id is not None
 
 
 @pytest.mark.django_db
-def test_get_by_id_returns_cart(cart_repo, cart, call):
+def test_get_by_id_returns_cart(cart_repo, cart):
     assert cart.id is not None
-    loaded = call(cart_repo.get_by_id)(cart.id)
+    loaded = cart_repo.get_by_id(cart.id)
 
     assert loaded.id == cart.id
     assert loaded.items == []
@@ -31,20 +31,20 @@ def test_get_by_id_returns_cart(cart_repo, cart, call):
 
 
 @pytest.mark.django_db
-def test_save_update_status(cart_repo, cart, call):
+def test_save_update_status(cart_repo, cart):
     assert cart.id is not None
     cart.status = CartStatus.CHECKOUT
 
-    call(cart_repo.save)(cart)
+    cart_repo.save(cart)
 
-    loaded = call(cart_repo.get_by_id)(cart.id)
+    loaded = cart_repo.get_by_id(cart.id)
     assert loaded.status is CartStatus.CHECKOUT
 
 
 @pytest.mark.django_db
-def test_get_by_id_loads_items(cart_repo, cart, cart_item, call):
+def test_get_by_id_loads_items(cart_repo, cart, cart_item):
     assert cart.id is not None
-    loaded = call(cart_repo.get_by_id)(cart.id)
+    loaded = cart_repo.get_by_id(cart.id)
 
     assert len(loaded.items) == 1
     assert loaded.items[0].id == cart_item.id

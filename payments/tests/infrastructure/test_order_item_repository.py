@@ -110,10 +110,9 @@ def test_get_by_order_id_filters_by_order(
     product,
     product_price,
     exchange_rate,
-    call,
 ):
     other_cart = Cart()
-    call(cart_repo.save)(other_cart)
+    cart_repo.save(other_cart)
     other_order = Order(currency=order.currency, cart=other_cart)
     order_repo.save(other_order)
 

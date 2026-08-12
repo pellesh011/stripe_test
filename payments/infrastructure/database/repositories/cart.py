@@ -1,4 +1,3 @@
-from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
 
 from payments.domain.entities.cart import Cart
@@ -9,20 +8,20 @@ from payments.infrastructure.database.repositories.loaders import build_cart
 
 
 class CartRepositoryImpl(CartRepository):
-    async def get_by_id(self, id: int) -> Cart:
+    def get_by_id(self, id: int) -> Cart:
         try:
-            model = await CartModel.objects.aget(id=id)
+            model = CartModel.objects.get(id=id)
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
-        return await sync_to_async(build_cart)(model)
+        return build_cart(model)
 
-    async def save(self, cart: Cart) -> None:
+    def save(self, cart: Cart) -> None:
         if cart.id is None:
-            model = await CartModel.objects.acreate(
+            model = CartModel.objects.create(
                 status=cart.status.value,
             )
             cart.id = model.id
         else:
-            await CartModel.objects.filter(id=cart.id).aupdate(
+            CartModel.objects.filter(id=cart.id).update(
                 status=cart.status.value,
             )

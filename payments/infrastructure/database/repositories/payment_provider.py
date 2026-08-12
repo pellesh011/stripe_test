@@ -12,20 +12,20 @@ from payments.infrastructure.database.repositories.mappers import (
 
 
 class PaymentProviderRepositoryImpl(PaymentProviderRepository):
-    async def get_by_id(self, id: int) -> PaymentProvider:
+    def get_by_id(self, id: int) -> PaymentProvider:
         try:
-            model = await PaymentProviderModel.objects.aget(id=id)
+            model = PaymentProviderModel.objects.get(id=id)
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
         return payment_provider_to_entity(model)
 
-    async def save(self, payment_provider: PaymentProvider) -> None:
+    def save(self, payment_provider: PaymentProvider) -> None:
         if payment_provider.id is None:
-            model = await PaymentProviderModel.objects.acreate(
+            model = PaymentProviderModel.objects.create(
                 name=payment_provider.name,
             )
             payment_provider.id = model.id
         else:
-            await PaymentProviderModel.objects.filter(id=payment_provider.id).aupdate(
+            PaymentProviderModel.objects.filter(id=payment_provider.id).update(
                 name=payment_provider.name,
             )

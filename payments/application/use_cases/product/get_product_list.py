@@ -15,8 +15,8 @@ class GetProductListUseCase:
         self.products = products
         self.product_prices = product_prices
 
-    async def execute(self, data: GetProductListDTO) -> list[Product]:
-        products_list = await self.products.get_active(
+    def execute(self, data: GetProductListDTO) -> list[Product]:
+        products_list = self.products.get_active(
             limit=data.pagination.limit,
             offset=data.pagination.offset,
         )
@@ -24,7 +24,7 @@ class GetProductListUseCase:
             product.id for product in products_list if product.id is not None
         ]
         currency = Currency(data.currency) if data.currency is not None else None
-        prices = await self.product_prices.get_active_by_product_ids(
+        prices = self.product_prices.get_active_by_product_ids(
             product_ids,
             currency=currency,
         )
