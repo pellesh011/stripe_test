@@ -18,6 +18,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from payments.representation import views
+
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/products/", views.get_product_list, name="product-list"),
 ]
