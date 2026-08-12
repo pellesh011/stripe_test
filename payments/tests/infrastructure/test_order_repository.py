@@ -1,6 +1,6 @@
 import pytest
 
-from payments.domain.entities.currency import Currencies
+from payments.domain.entities.exchange_rate import Currency
 from payments.domain.entities.order import Order, OrderStatus
 from payments.domain.exceptions import EntityNotFoundError
 
@@ -13,7 +13,7 @@ def test_get_by_id_not_found(order_repo):
 
 @pytest.mark.django_db
 def test_save_create_assigns_id(order_repo, cart):
-    entity = Order(currency=Currencies.EUR, cart=cart)
+    entity = Order(currency=Currency.EUR, cart=cart)
     assert entity.id is None
 
     order_repo.save(entity)
@@ -47,7 +47,7 @@ def test_get_by_id_returns_order_with_discount(order_repo, order):
 
 @pytest.mark.django_db
 def test_get_by_id_returns_order_without_discount(order_repo, cart):
-    entity = Order(currency=Currencies.EUR, cart=cart)
+    entity = Order(currency=Currency.EUR, cart=cart)
     order_repo.save(entity)
 
     assert entity.id is not None

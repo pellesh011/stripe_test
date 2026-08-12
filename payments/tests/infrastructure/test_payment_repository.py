@@ -13,8 +13,8 @@ def test_get_by_id_not_found(payment_repo):
 
 
 @pytest.mark.django_db
-def test_save_create_assigns_id(payment_repo, order, currency):
-    entity = Payment(order=order, amount=Decimal("25.00"), currency=currency)
+def test_save_create_assigns_id(payment_repo, order, exchange_rate):
+    entity = Payment(order=order, amount=Decimal("25.00"), currency=exchange_rate)
     assert entity.id is None
 
     payment_repo.save(entity)
@@ -44,11 +44,11 @@ def test_get_by_order_id(payment_repo, payment):
 
 
 @pytest.mark.django_db
-def test_get_by_order_id_returns_latest(payment_repo, order, currency):
+def test_get_by_order_id_returns_latest(payment_repo, order, exchange_rate):
     assert order.id is not None
-    first = Payment(order=order, amount=Decimal("1.00"), currency=currency)
+    first = Payment(order=order, amount=Decimal("1.00"), currency=exchange_rate)
     payment_repo.save(first)
-    second = Payment(order=order, amount=Decimal("2.00"), currency=currency)
+    second = Payment(order=order, amount=Decimal("2.00"), currency=exchange_rate)
     payment_repo.save(second)
 
     loaded = payment_repo.get_by_order_id(order.id)

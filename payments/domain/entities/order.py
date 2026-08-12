@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 
 from payments.domain.entities.cart import Cart
-from payments.domain.entities.currency import Currencies
 from payments.domain.entities.discount import Discount
+from payments.domain.entities.exchange_rate import Currency
 from payments.domain.entities.order_item import OrderItem
 
 
@@ -21,7 +21,7 @@ class OrderStatus(Enum):
 @dataclass
 class Order:
     id: int | None
-    currency: Currencies
+    currency: Currency
     items: list[OrderItem]
     status: OrderStatus
     cart: Cart
@@ -29,7 +29,7 @@ class Order:
 
     def __init__(
         self,
-        currency: Currencies,
+        currency: Currency,
         cart: Cart,
         discount: Discount | None = None,
         id: int | None = None,
@@ -47,7 +47,7 @@ class Order:
     @classmethod
     def restore(
         cls,
-        currency: Currencies,
+        currency: Currency,
         cart: Cart,
         items: list[OrderItem],
         status: OrderStatus,

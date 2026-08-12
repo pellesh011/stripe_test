@@ -1,4 +1,4 @@
-class CurrencyValueError(Exception):
+class ExchangeRateValueError(Exception):
     pass
 
 

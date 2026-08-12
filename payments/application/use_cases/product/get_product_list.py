@@ -1,5 +1,5 @@
 from payments.application.dto.product import GetProductListDTO
-from payments.domain.entities.currency import Currencies
+from payments.domain.entities.exchange_rate import Currency
 from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
 from payments.domain.repositories.product import ProductRepository
@@ -23,7 +23,7 @@ class GetProductListUseCase:
         product_ids = [
             product.id for product in products_list if product.id is not None
         ]
-        currency = Currencies(data.currency) if data.currency is not None else None
+        currency = Currency(data.currency) if data.currency is not None else None
         prices = await self.product_prices.get_active_by_product_ids(
             product_ids,
             currency=currency,

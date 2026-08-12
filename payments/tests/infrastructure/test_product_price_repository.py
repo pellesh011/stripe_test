@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from payments.domain.entities.currency import Currencies
+from payments.domain.entities.exchange_rate import Currency
 from payments.domain.entities.product_price import ProductPrice
 from payments.domain.exceptions import EntityNotFoundError
 
@@ -14,7 +14,7 @@ def test_get_by_id(product_price_repo, product_price, call):
     assert loaded.id == product_price.id
     assert loaded.price == Decimal("10.00")
     assert loaded.product.id == product_price.product.id
-    assert loaded.currency == Currencies.EUR
+    assert loaded.currency == Currency.EUR
     assert loaded.is_active is True
 
 
@@ -27,7 +27,7 @@ def test_get_by_id_not_found(product_price_repo, call):
 @pytest.mark.django_db
 def test_get_active(product_price_repo, product_price, product, call):
     inactive = ProductPrice(
-        currency=Currencies.EUR, price=Decimal("5.00"), product=product
+        currency=Currency.EUR, price=Decimal("5.00"), product=product
     )
     inactive.set_active(False)
     call(product_price_repo.save)(inactive)
@@ -46,7 +46,7 @@ def test_get_active_pagination_limit_and_offset(
     product_price,
     call,
 ):
-    for enum in (Currencies.RUB, Currencies.USD):
+    for enum in (Currency.RUB, Currency.USD):
         entity = ProductPrice(currency=enum, price=Decimal("5.00"), product=product)
         call(product_price_repo.save)(entity)
 
@@ -89,13 +89,13 @@ def test_get_active_by_product_ids_filters_by_currency(
 ):
     assert product.id is not None
     rub_price = ProductPrice(
-        currency=Currencies.RUB, price=Decimal("5.00"), product=product
+        currency=Currency.RUB, price=Decimal("5.00"), product=product
     )
     call(product_price_repo.save)(rub_price)
 
     prices = call(product_price_repo.get_active_by_product_ids)(
         [product.id],
-        currency=Currencies.RUB,
+        currency=Currency.RUB,
     )
 
     assert [price.id for price in prices] == [rub_price.id]
@@ -110,7 +110,7 @@ def test_get_active_by_product_ids_returns_active_only(
 ):
     assert product.id is not None
     inactive = ProductPrice(
-        currency=Currencies.RUB, price=Decimal("5.00"), product=product
+        currency=Currency.RUB, price=Decimal("5.00"), product=product
     )
     inactive.set_active(False)
     call(product_price_repo.save)(inactive)
@@ -128,7 +128,7 @@ def test_get_active_by_product_ids_multiple_products(
     call,
 ):
     second_price = ProductPrice(
-        currency=Currencies.RUB, price=Decimal("7.00"), product=product
+        currency=Currency.RUB, price=Decimal("7.00"), product=product
     )
     call(product_price_repo.save)(second_price)
 
@@ -140,9 +140,7 @@ def test_get_active_by_product_ids_multiple_products(
 
 @pytest.mark.django_db
 def test_save_create_assigns_id(product_price_repo, product, call):
-    entity = ProductPrice(
-        currency=Currencies.EUR, price=Decimal("3.99"), product=product
-    )
+    entity = ProductPrice(currency=Currency.EUR, price=Decimal("3.99"), product=product)
     assert entity.id is None
 
     call(product_price_repo.save)(entity)

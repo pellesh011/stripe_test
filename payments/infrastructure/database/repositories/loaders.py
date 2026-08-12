@@ -25,6 +25,8 @@ CART_ITEM_SELECT_RELATED = (
     "product_price__product",
 )
 
+ORDER_ITEM_SELECT_RELATED = (*CART_ITEM_SELECT_RELATED, "exchange_rate")
+
 
 def load_cart_items(cart_id: int) -> list[CartItem]:
     return [
@@ -39,7 +41,7 @@ def load_order_items(order_id: int) -> list[OrderItem]:
     return [
         order_item_to_entity(model)
         for model in OrderItemModel.objects.filter(order_id=order_id).select_related(
-            *CART_ITEM_SELECT_RELATED
+            *ORDER_ITEM_SELECT_RELATED
         )
     ]
 

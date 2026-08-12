@@ -1,47 +1,47 @@
 from decimal import Decimal
 from enum import Enum
 
-from payments.domain.exceptions import CurrencyValueError
+from payments.domain.exceptions import ExchangeRateValueError
 
 
-class Currencies(Enum):
+class Currency(Enum):
     USD = "usd"
     RUB = "rub"
     EUR = "eur"
 
 
-class Currency:
+class ExchangeRate:
     id: int | None
-    base_currency: Currencies
-    currency: Currencies
+    base_currency: Currency
+    currency: Currency
     coef: Decimal
     is_active: bool
 
     def __init__(
         self,
-        currency: Currencies,
+        currency: Currency,
         coef: Decimal,
         is_active: bool = True,
         id: int | None = None,
     ):
 
-        self.base_currency = Currencies.USD
+        self.base_currency = Currency.USD
         self.currency = currency
         self.coef = coef
         self.is_active = is_active
         self.id = id
         if self.coef < 0:
-            raise CurrencyValueError()
+            raise ExchangeRateValueError()
 
         if self.base_currency == self.currency and self.coef != 1:
-            raise CurrencyValueError()
+            raise ExchangeRateValueError()
 
     @classmethod
     def restore(
         cls,
-        currency: Currencies,
+        currency: Currency,
         coef: Decimal,
         is_active: bool,
         id: int | None = None,
-    ) -> Currency:
+    ) -> ExchangeRate:
         return cls(currency=currency, coef=coef, is_active=is_active, id=id)

@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.db import models
 
-from payments.infrastructure.database.models.currency import CurrencyModel
 from payments.infrastructure.database.models.enums import PaymentStatusChoices
+from payments.infrastructure.database.models.exchange_rate import ExchangeRateModel
 from payments.infrastructure.database.models.order import OrderModel
 
 
@@ -27,7 +27,7 @@ class PaymentModel(models.Model):
     )
 
     currency = models.ForeignKey(
-        CurrencyModel,
+        ExchangeRateModel,
         on_delete=models.PROTECT,
         related_name="payments",
     )
