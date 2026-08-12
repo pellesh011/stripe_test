@@ -110,12 +110,14 @@ def order_to_entity(
     discount = (
         discount_to_entity(model.discount) if model.discount is not None else None
     )
+    tax = tax_to_entity(model.tax) if model.tax is not None else None
     return Order.restore(
         currency=Currency(model.currency),
         cart=cart,
         items=items,
         status=OrderStatus(model.status),
         discount=discount,
+        tax=tax,
         id=model.id,
     )
 

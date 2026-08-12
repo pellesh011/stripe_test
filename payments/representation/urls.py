@@ -23,4 +23,5 @@ from payments.representation import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/products/", views.get_product_list, name="product-list"),
+    path("api/cart/checkout/", views.checkout, name="cart-checkout"),
 ]

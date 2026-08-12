@@ -3,7 +3,11 @@ from decimal import Decimal
 import pytest
 
 from payments.domain.entities.discount import Discount, DiscountType
-from payments.domain.exceptions import EntityNotFoundError
+from payments.domain.exceptions import (
+    DiscountNotActiveError,
+    DiscountNotFoundError,
+    EntityNotFoundError,
+)
 
 
 @pytest.mark.django_db
@@ -30,6 +34,26 @@ def test_get_active(discount_repo, discount, inactive_discount):
 
     assert discount.id in active_ids
     assert inactive_discount.id not in active_ids
+
+
+@pytest.mark.django_db
+def test_get_active_by_name(discount_repo, discount):
+    loaded = discount_repo.get_active_by_name(discount.name)
+
+    assert loaded.id == discount.id
+    assert loaded.is_active is True
+
+
+@pytest.mark.django_db
+def test_get_active_by_name_not_found(discount_repo):
+    with pytest.raises(DiscountNotFoundError):
+        discount_repo.get_active_by_name("missing")
+
+
+@pytest.mark.django_db
+def test_get_active_by_name_inactive(discount_repo, inactive_discount):
+    with pytest.raises(DiscountNotActiveError):
+        discount_repo.get_active_by_name(inactive_discount.name)
 
 
 @pytest.mark.django_db

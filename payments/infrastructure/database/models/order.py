@@ -28,6 +28,14 @@ class OrderModel(models.Model):
         blank=True,
     )
 
+    tax = models.ForeignKey(
+        "TaxModel",
+        on_delete=models.PROTECT,
+        related_name="orders",
+        null=True,
+        blank=True,
+    )
+
     status = models.CharField(
         max_length=30,
         choices=OrderStatusChoices,

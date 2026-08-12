@@ -1,7 +1,11 @@
 from django.core.exceptions import ObjectDoesNotExist
 
 from payments.domain.entities.discount import Discount
-from payments.domain.exceptions import EntityNotFoundError
+from payments.domain.exceptions import (
+    DiscountNotActiveError,
+    DiscountNotFoundError,
+    EntityNotFoundError,
+)
 from payments.domain.repositories.discount import DiscountRepository
 from payments.infrastructure.database.models.discount import DiscountModel
 from payments.infrastructure.database.repositories.mappers import discount_to_entity
@@ -20,6 +24,15 @@ class DiscountRepositoryImpl(DiscountRepository):
             offset : offset + limit
         ]
         return [discount_to_entity(model) for model in qs]
+
+    def get_active_by_name(self, name: str) -> Discount:
+        try:
+            model = DiscountModel.objects.get(name=name)
+        except ObjectDoesNotExist:
+            raise DiscountNotFoundError() from None
+        if not model.is_active:
+            raise DiscountNotActiveError()
+        return discount_to_entity(model)
 
     def save(self, discount: Discount) -> None:
         if discount.id is None:
