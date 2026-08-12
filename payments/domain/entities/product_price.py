@@ -12,11 +12,11 @@ class ProductPrice:
     _is_active: bool
 
     __slots__ = (
-        "_id",
         "_currency",
+        "_id",     
+        "_is_active",   
         "_price",
         "_product",
-        "_is_active",
     )
 
     def __init__(
@@ -75,7 +75,7 @@ class ProductPrice:
         is_active: bool,
         currency: Currency = Currency.USD,
         id: int | None = None,
-    ) -> "ProductPrice":
+    ) -> ProductPrice:
         product_price = cls(
             price=price,
             product=product,

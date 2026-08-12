@@ -44,8 +44,5 @@ class ExchangeRateRepositoryImpl(ExchangeRateRepository):
             exchange_rate.id = model.id
         else:
             ExchangeRateModel.objects.filter(id=exchange_rate.id).update(
-                base_currency=exchange_rate.base_currency.value,
-                currency=exchange_rate.currency.value,
-                coef=exchange_rate.coef,
                 is_active=exchange_rate.is_active,
             )
