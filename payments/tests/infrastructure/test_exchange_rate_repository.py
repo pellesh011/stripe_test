@@ -89,9 +89,10 @@ def test_save_create_assigns_id(exchange_rate_repo):
 @pytest.mark.django_db
 def test_save_update(exchange_rate_repo, exchange_rate):
     assert exchange_rate.id is not None
-    exchange_rate.coef = Decimal("1.20")
-
+    with pytest.raises(AttributeError):
+        exchange_rate.coef = Decimal("1.20")
+    exchange_rate.set_active(False)
     exchange_rate_repo.save(exchange_rate)
 
     loaded = exchange_rate_repo.get_by_id(exchange_rate.id)
-    assert loaded.coef == Decimal("1.20")
+    assert loaded.is_active is False

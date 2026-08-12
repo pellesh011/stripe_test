@@ -146,11 +146,11 @@ def test_save_create_assigns_id(product_price_repo, product):
 @pytest.mark.django_db
 def test_save_update(product_price_repo, product_price):
     assert product_price.id is not None
-    product_price.price = Decimal("12.50")
+    with pytest.raises(AttributeError): 
+        product_price.price = Decimal("12.50")
     product_price.set_active(False)
 
     product_price_repo.save(product_price)
-
+    
     loaded = product_price_repo.get_by_id(product_price.id)
-    assert loaded.price == Decimal("12.50")
     assert loaded.is_active is False
