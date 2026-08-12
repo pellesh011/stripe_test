@@ -126,6 +126,4 @@ def test_payment_currency_mismatch():
     test_order = Order(currency=Currency.USD, cart=test_cart)
 
     with pytest.raises(PaymentCurrencyMismatchError):
-        Payment(
-            order=test_order, amount=Decimal("10.00"), currency=Currency.EUR
-        )
+        Payment(order=test_order, amount=Decimal("10.00"), currency=Currency.EUR)

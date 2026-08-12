@@ -12,6 +12,7 @@ from payments.domain.entities.payment_attempts import (
 from payments.domain.entities.payment_provider import PaymentProvider
 from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
+from payments.domain.entities.tax import Tax
 from payments.infrastructure.database.models.cart import CartItemModel, CartModel
 from payments.infrastructure.database.models.discount import DiscountModel
 from payments.infrastructure.database.models.exchange_rate import ExchangeRateModel
@@ -27,6 +28,15 @@ from payments.infrastructure.database.models.product import (
     ProductModel,
     ProductPriceModel,
 )
+from payments.infrastructure.database.models.tax import TaxModel
+
+
+def tax_to_entity(model: TaxModel) -> Tax:
+    return Tax.restore(
+        name=model.name,
+        rate=model.rate,
+        id=model.id,
+    )
 
 
 def exchange_rate_to_entity(model: ExchangeRateModel) -> ExchangeRate:

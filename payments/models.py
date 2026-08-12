@@ -25,3 +25,6 @@ from payments.infrastructure.database.models.product import (
     ProductModel,
     ProductPriceModel,
 )
+from payments.infrastructure.database.models.tax import (
+    TaxModel,
+)
