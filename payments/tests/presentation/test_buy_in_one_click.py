@@ -48,7 +48,11 @@ def test_buy_in_one_click_success(
     response = _post(client, _payload(product.id, product_price.id))
 
     assert response.status_code == 200
-    assert response.json() == {"client_secret": "cs_test_secret"}
+    data = response.json()
+    assert data["client_secret"] == "cs_test_secret"
+    assert isinstance(data["order_id"], int)
+    assert data["amount"] == "10.00"
+    assert data["currency"] == "eur"
 
 
 @pytest.mark.django_db

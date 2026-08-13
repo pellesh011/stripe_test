@@ -206,9 +206,15 @@ body {
   font-size: 22px;
 }
 
-.payment__product {
-  margin: 0 0 20px;
+.payment__order {
+  margin: 0 0 4px;
   color: #52606d;
+}
+
+.payment__amount {
+  margin: 0 0 20px;
+  font-size: 20px;
+  font-weight: 600;
 }
 
 .payment__form {

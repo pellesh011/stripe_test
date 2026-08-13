@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from payments.application.dto.checkout import CheckoutDTO
+from payments.application.dto.checkout import CheckoutDTO, CheckoutResult
 from payments.domain.entities.cart import Cart, CartStatus
 from payments.domain.entities.exchange_rate import Currency, ExchangeRate
 from payments.domain.entities.order import Order
@@ -57,7 +57,7 @@ class CheckoutUseCase:
         self.payment_providers = payment_providers
         self.payment_gateway = payment_gateway
 
-    def execute(self, data: CheckoutDTO) -> str:
+    def execute(self, data: CheckoutDTO) -> CheckoutResult:
         currency = Currency(data.currency)
 
         with self.uow:
@@ -123,7 +123,13 @@ class CheckoutUseCase:
 
             self.payment_attempts.save(payment_attempt)
 
-        return payment_intent.client_secret
+        assert order.id is not None
+        return CheckoutResult(
+            order_id=order.id,
+            amount=order.total(),
+            currency=order.currency,
+            client_secret=payment_intent.client_secret,
+        )
 
     @staticmethod
     def _validate(cart: Cart) -> None:

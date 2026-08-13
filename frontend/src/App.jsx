@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   buyInOneClick,
-  formatPrice,
   getProducts,
   CURRENCY_LABELS,
 } from "./api/products.js";
@@ -41,18 +40,19 @@ export default function App() {
   }, [currency]);
 
   const handleBuyOneClick = useCallback(
-    async (productId, productPriceId, cur, price) => {
-      const result = await buyInOneClick(productId, productPriceId, cur);
+    async (productId, cur) => {
+      const price = buyProduct?.price ?? null;
+      const result = await buyInOneClick(productId, price?.id, cur);
       if (!result.client_secret) {
         throw new Error("Сервер не вернул client_secret");
       }
-      const selected = buyProduct;
       setBuyProduct(null);
       setPayment({
         clientSecret: result.client_secret,
-        product: {
-          name: selected?.name ?? "",
-          priceLabel: price ? formatPrice(price.price, price.currency) : null,
+        order: {
+          id: result.order_id,
+          amount: result.amount,
+          currency: result.currency,
         },
       });
     },
@@ -63,7 +63,7 @@ export default function App() {
     return (
       <PaymentPage
         clientSecret={payment.clientSecret}
-        product={payment.product}
+        order={payment.order}
         onBack={() => setPayment(null)}
       />
     );
@@ -101,7 +101,7 @@ export default function App() {
             <ProductCard
               key={product.id}
               product={product}
-              onBuyOneClick={(p) => setBuyProduct(p)}
+              onBuyOneClick={(p, price) => setBuyProduct({ product: p, price })}
             />
           ))}
         </div>
@@ -109,7 +109,8 @@ export default function App() {
 
       {buyProduct && (
         <BuyInOneClickModal
-          product={buyProduct}
+          product={buyProduct.product}
+          price={buyProduct.price}
           onClose={() => setBuyProduct(null)}
           onSubmit={handleBuyOneClick}
         />

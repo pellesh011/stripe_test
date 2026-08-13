@@ -29,7 +29,7 @@ SECRET_KEY = "django-insecure-#ev($w@0_pd*+l6+d&$v7j*6n^&eoq1$66-dv3f#=9c+#5%kpf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS: list[str] = []
+ALLOWED_HOSTS: list[str] = ["*"]
 
 DATABASE_HOST = os.getenv("DATABASE_HOST")
 DATABASE_PORT = os.getenv("DATABASE_PORT")
@@ -38,6 +38,8 @@ DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
 DATABASE_DB = os.getenv("DATABASE_DB")
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
 
 # Application definition

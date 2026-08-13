@@ -17,7 +17,7 @@ export default function ProductCard({ product, onBuyOneClick }) {
         type="button"
         className="card__buy"
         disabled={!price}
-        onClick={() => onBuyOneClick(product)}
+        onClick={() => onBuyOneClick(product, price)}
       >
         Купить в один клик
       </button>

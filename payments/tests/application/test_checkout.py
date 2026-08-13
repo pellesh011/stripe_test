@@ -116,11 +116,14 @@ def test_execute_creates_order(
 
     result = use_case.execute(dto)
 
-    assert result == CLIENT_SECRET
+    assert result.client_secret == CLIENT_SECRET
     assert len(payment_gateway.calls) == 1
 
     recorded_order, amount, currency = payment_gateway.calls[0]
     assert recorded_order.id is not None
+    assert result.order_id == recorded_order.id
+    assert result.amount == Decimal("11.00")
+    assert result.currency is Currency.EUR
     assert recorded_order.currency is Currency.EUR
     assert recorded_order.status is OrderStatus.CREATED
     assert len(recorded_order.items) == 1
@@ -189,12 +192,15 @@ def test_execute_without_discount_and_tax(
 
     result = use_case.execute(dto)
 
-    assert result == CLIENT_SECRET
+    assert result.client_secret == CLIENT_SECRET
     assert len(payment_gateway.calls) == 1
 
     recorded_order, amount, currency = payment_gateway.calls[0]
     assert recorded_order.discount is None
     assert recorded_order.tax is None
+    assert result.order_id == recorded_order.id
+    assert result.amount == Decimal("10.00")
+    assert result.currency is Currency.EUR
     assert amount == Decimal("10.00")
     assert currency is Currency.EUR
 
@@ -682,10 +688,13 @@ def test_execute_converts_items_in_different_currencies(
 
     result = use_case.execute(_build_dto(cart.id, payment_provider.id))
 
-    assert result == CLIENT_SECRET
+    assert result.client_secret == CLIENT_SECRET
     recorded_order, amount, currency = payment_gateway.calls[0]
     assert currency is Currency.EUR
     assert amount == Decimal("9.50")
+    assert result.order_id == recorded_order.id
+    assert result.amount == Decimal("9.50")
+    assert result.currency is Currency.EUR
     assert len(recorded_order.items) == 2
     prices_by_currency = {
         item.product_price.currency: item.price for item in recorded_order.items

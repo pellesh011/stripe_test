@@ -109,11 +109,14 @@ def test_execute_creates_order_and_converts_cart(
 
     result = use_case.execute(_build_dto(product.id, product_price.id))
 
-    assert result == CLIENT_SECRET
+    assert result.client_secret == CLIENT_SECRET
     assert len(payment_gateway.calls) == 1
 
     recorded_order, amount, currency = payment_gateway.calls[0]
     assert recorded_order.id is not None
+    assert result.order_id == recorded_order.id
+    assert result.amount == Decimal("10.00")
+    assert result.currency is Currency.EUR
     assert recorded_order.status is OrderStatus.CREATED
     assert recorded_order.currency is Currency.EUR
     assert len(recorded_order.items) == 1

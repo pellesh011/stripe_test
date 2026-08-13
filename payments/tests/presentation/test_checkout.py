@@ -59,7 +59,11 @@ def test_checkout_success(
     )
 
     assert response.status_code == 200
-    assert response.json() == {"client_secret": "cs_test_secret"}
+    data = response.json()
+    assert data["client_secret"] == "cs_test_secret"
+    assert isinstance(data["order_id"], int)
+    assert data["amount"] == "11.00"
+    assert data["currency"] == "eur"
 
     assert cart_repo.get_by_id(cart.id).status is CartStatus.CONVERTED
 
@@ -75,7 +79,11 @@ def test_checkout_without_optional_fields(
     response = _post(client, _payload(cart.id, payment_provider.id))
 
     assert response.status_code == 200
-    assert response.json() == {"client_secret": "cs_test_secret"}
+    data = response.json()
+    assert data["client_secret"] == "cs_test_secret"
+    assert isinstance(data["order_id"], int)
+    assert data["amount"] == "10.00"
+    assert data["currency"] == "eur"
 
 
 @pytest.mark.django_db
