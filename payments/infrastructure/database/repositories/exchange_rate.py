@@ -10,42 +10,39 @@ from payments.infrastructure.database.repositories.mappers import (
 
 
 class ExchangeRateRepositoryImpl(ExchangeRateRepository):
-    async def get_by_id(self, id: int) -> ExchangeRate:
+    def get_by_id(self, id: int) -> ExchangeRate:
         try:
-            model = await ExchangeRateModel.objects.aget(id=id)
+            model = ExchangeRateModel.objects.get(id=id)
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
         return exchange_rate_to_entity(model)
 
-    async def get_active(self, limit: int = 10, offset: int = 0) -> list[ExchangeRate]:
+    def get_active(self, limit: int = 10, offset: int = 0) -> list[ExchangeRate]:
         qs = ExchangeRateModel.objects.filter(is_active=True).order_by("id")[
             offset : offset + limit
         ]
-        return [exchange_rate_to_entity(model) async for model in qs]
+        return [exchange_rate_to_entity(model) for model in qs]
 
-    async def get_active_by_code(self, currency: Currency) -> ExchangeRate:
+    def get_active_by_code(self, currency: Currency) -> ExchangeRate:
         try:
-            model = await ExchangeRateModel.objects.filter(
+            model = ExchangeRateModel.objects.filter(
                 is_active=True,
                 currency=currency.value,
-            ).aget()
+            ).get()
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
         return exchange_rate_to_entity(model)
 
-    async def save(self, exchange_rate: ExchangeRate) -> None:
+    def save(self, exchange_rate: ExchangeRate) -> None:
         if exchange_rate.id is None:
-            model = await ExchangeRateModel.objects.acreate(
+            model = ExchangeRateModel.objects.create(
                 base_currency=exchange_rate.base_currency.value,
                 currency=exchange_rate.currency.value,
                 coef=exchange_rate.coef,
                 is_active=exchange_rate.is_active,
             )
-            exchange_rate.id = model.id
+            exchange_rate.set_id(model.id)
         else:
-            await ExchangeRateModel.objects.filter(id=exchange_rate.id).aupdate(
-                base_currency=exchange_rate.base_currency.value,
-                currency=exchange_rate.currency.value,
-                coef=exchange_rate.coef,
+            ExchangeRateModel.objects.filter(id=exchange_rate.id).update(
                 is_active=exchange_rate.is_active,
             )

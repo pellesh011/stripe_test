@@ -11,11 +11,19 @@ class Currency(Enum):
 
 
 class ExchangeRate:
-    id: int | None
-    base_currency: Currency
-    currency: Currency
-    coef: Decimal
-    is_active: bool
+    _id: int | None
+    _base_currency: Currency
+    _currency: Currency
+    _coef: Decimal
+    _is_active: bool
+
+    __slots__ = (
+        "_base_currency",
+        "_coef",
+        "_currency",
+        "_id",
+        "_is_active",
+    )
 
     def __init__(
         self,
@@ -24,17 +32,54 @@ class ExchangeRate:
         is_active: bool = True,
         id: int | None = None,
     ):
+        base_currency = Currency.USD
 
-        self.base_currency = Currency.USD
-        self.currency = currency
-        self.coef = coef
-        self.is_active = is_active
-        self.id = id
-        if self.coef < 0:
+        if coef < 0:
             raise ExchangeRateValueError()
 
-        if self.base_currency == self.currency and self.coef != 1:
+        if base_currency == currency and coef != 1:
             raise ExchangeRateValueError()
+
+        object.__setattr__(self, "_id", id)
+        object.__setattr__(self, "_base_currency", base_currency)
+        object.__setattr__(self, "_currency", currency)
+        object.__setattr__(self, "_coef", coef)
+        object.__setattr__(self, "_is_active", is_active)
+
+    def __setattr__(self, name, value):
+        if name == "id":
+            object.__setattr__(self, "_id", value)
+        else:
+            raise AttributeError(f"{type(self).__name__}.{name} is immutable")
+
+    @property
+    def id(self) -> int | None:
+        return self._id
+
+    @property
+    def base_currency(self) -> Currency:
+        return self._base_currency
+
+    @property
+    def currency(self) -> Currency:
+        return self._currency
+
+    @property
+    def coef(self) -> Decimal:
+        return self._coef
+
+    @property
+    def is_active(self) -> bool:
+        return self._is_active
+
+    def set_id(self, id: int) -> None:
+        if self._id is not None:
+            raise ValueError("ExchangeRate id is already set")
+
+        object.__setattr__(self, "_id", id)
+
+    def set_active(self, is_active: bool) -> None:
+        object.__setattr__(self, "_is_active", is_active)
 
     @classmethod
     def restore(
@@ -44,4 +89,9 @@ class ExchangeRate:
         is_active: bool,
         id: int | None = None,
     ) -> ExchangeRate:
-        return cls(currency=currency, coef=coef, is_active=is_active, id=id)
+        return cls(
+            currency=currency,
+            coef=coef,
+            is_active=is_active,
+            id=id,
+        )

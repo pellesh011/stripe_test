@@ -3,13 +3,17 @@ from decimal import Decimal
 import pytest
 
 from payments.domain.entities.discount import Discount, DiscountType
-from payments.domain.exceptions import EntityNotFoundError
+from payments.domain.exceptions import (
+    DiscountNotActiveError,
+    DiscountNotFoundError,
+    EntityNotFoundError,
+)
 
 
 @pytest.mark.django_db
-def test_get_by_id(discount_repo, discount, call):
+def test_get_by_id(discount_repo, discount):
     assert discount.id is not None
-    loaded = call(discount_repo.get_by_id)(discount.id)
+    loaded = discount_repo.get_by_id(discount.id)
     assert loaded.id == discount.id
     assert loaded.name == "Test Discount"
     assert loaded.type == DiscountType.PERCENTAGE
@@ -18,14 +22,14 @@ def test_get_by_id(discount_repo, discount, call):
 
 
 @pytest.mark.django_db
-def test_get_by_id_not_found(discount_repo, call):
+def test_get_by_id_not_found(discount_repo):
     with pytest.raises(EntityNotFoundError):
-        call(discount_repo.get_by_id)(9999)
+        discount_repo.get_by_id(9999)
 
 
 @pytest.mark.django_db
-def test_get_active(discount_repo, discount, inactive_discount, call):
-    active = call(discount_repo.get_active)()
+def test_get_active(discount_repo, discount, inactive_discount):
+    active = discount_repo.get_active()
     active_ids = {item.id for item in active}
 
     assert discount.id in active_ids
@@ -33,8 +37,28 @@ def test_get_active(discount_repo, discount, inactive_discount, call):
 
 
 @pytest.mark.django_db
+def test_get_active_by_name(discount_repo, discount):
+    loaded = discount_repo.get_active_by_name(discount.name)
+
+    assert loaded.id == discount.id
+    assert loaded.is_active is True
+
+
+@pytest.mark.django_db
+def test_get_active_by_name_not_found(discount_repo):
+    with pytest.raises(DiscountNotFoundError):
+        discount_repo.get_active_by_name("missing")
+
+
+@pytest.mark.django_db
+def test_get_active_by_name_inactive(discount_repo, inactive_discount):
+    with pytest.raises(DiscountNotActiveError):
+        discount_repo.get_active_by_name(inactive_discount.name)
+
+
+@pytest.mark.django_db
 def test_get_active_pagination_limit_and_offset(
-    discount_repo, discount, inactive_discount, call
+    discount_repo, discount, inactive_discount
 ):
     for name in ("Discount 1", "Discount 2", "Discount 3"):
         entity = Discount(
@@ -42,10 +66,10 @@ def test_get_active_pagination_limit_and_offset(
             type=DiscountType.FIXED,
             value=Decimal("1.00"),
         )
-        call(discount_repo.save)(entity)
+        discount_repo.save(entity)
 
-    first_page = call(discount_repo.get_active)(limit=2, offset=0)
-    second_page = call(discount_repo.get_active)(limit=2, offset=2)
+    first_page = discount_repo.get_active(limit=2, offset=0)
+    second_page = discount_repo.get_active(limit=2, offset=2)
 
     assert len(first_page) == 2
     assert len(second_page) == 2
@@ -58,7 +82,7 @@ def test_get_active_pagination_limit_and_offset(
 
 
 @pytest.mark.django_db
-def test_save_create_assigns_id(discount_repo, call):
+def test_save_create_assigns_id(discount_repo):
     entity = Discount(
         name="New Discount",
         type=DiscountType.FIXED,
@@ -66,21 +90,21 @@ def test_save_create_assigns_id(discount_repo, call):
     )
     assert entity.id is None
 
-    call(discount_repo.save)(entity)
+    discount_repo.save(entity)
 
     assert entity.id is not None
 
 
 @pytest.mark.django_db
-def test_save_update(discount_repo, discount, call):
+def test_save_update(discount_repo, discount):
     assert discount.id is not None
     discount.name = "Renamed Discount"
     discount.value = Decimal("15.00")
     discount.is_active = False
 
-    call(discount_repo.save)(discount)
+    discount_repo.save(discount)
 
-    loaded = call(discount_repo.get_by_id)(discount.id)
+    loaded = discount_repo.get_by_id(discount.id)
     assert loaded.name == "Renamed Discount"
     assert loaded.value == Decimal("15.00")
     assert loaded.is_active is False

@@ -13,38 +13,38 @@ from payments.infrastructure.database.repositories.mappers import (
 
 
 class ProductPriceRepositoryImpl(ProductPriceRepository):
-    async def get_by_id(self, id: int) -> ProductPrice:
+    def get_by_id(self, id: int) -> ProductPrice:
         try:
-            model = await ProductPriceModel.objects.select_related(
+            model = ProductPriceModel.objects.select_related(
                 "product",
-            ).aget(id=id)
+            ).get(id=id)
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
         return product_price_to_entity(model)
 
-    async def get_active(self, limit: int = 10, offset: int = 0) -> list[ProductPrice]:
+    def get_active(self, limit: int = 10, offset: int = 0) -> list[ProductPrice]:
         qs = (
             ProductPriceModel.objects.filter(is_active=True)
             .select_related("product")
             .order_by("id")[offset : offset + limit]
         )
-        return [product_price_to_entity(model) async for model in qs]
+        return [product_price_to_entity(model) for model in qs]
 
-    async def get_active_by_product_id(self, product_id: int) -> ProductPrice:
+    def get_active_by_product_id(self, product_id: int) -> ProductPrice:
         try:
             model = (
-                await ProductPriceModel.objects.filter(
+                ProductPriceModel.objects.filter(
                     product_id=product_id,
                     is_active=True,
                 )
                 .select_related("product")
-                .aget()
+                .get()
             )
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
         return product_price_to_entity(model)
 
-    async def get_active_by_product_ids(
+    def get_active_by_product_ids(
         self,
         product_ids: list[int],
         currency: Currency | None = None,
@@ -55,23 +55,20 @@ class ProductPriceRepositoryImpl(ProductPriceRepository):
         ).select_related("product")
         if currency is not None:
             qs = qs.filter(currency=currency.value)
-        return [product_price_to_entity(model) async for model in qs]
+        return [product_price_to_entity(model) for model in qs]
 
-    async def save(self, product_price: ProductPrice) -> None:
+    def save(self, product_price: ProductPrice) -> None:
         assert product_price.product.id is not None
 
         if product_price.id is None:
-            model = await ProductPriceModel.objects.acreate(
+            model = ProductPriceModel.objects.create(
                 product_id=product_price.product.id,
                 currency=product_price.currency.value,
                 price=product_price.price,
                 is_active=product_price.is_active,
             )
-            product_price.id = model.id
+            product_price.set_id(model.id)
         else:
-            await ProductPriceModel.objects.filter(id=product_price.id).aupdate(
-                product_id=product_price.product.id,
-                currency=product_price.currency.value,
-                price=product_price.price,
+            ProductPriceModel.objects.filter(id=product_price.id).update(
                 is_active=product_price.is_active,
             )

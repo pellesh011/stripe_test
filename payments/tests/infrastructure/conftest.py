@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 import pytest
-from asgiref.sync import async_to_sync
 
 from payments.domain.entities.cart import Cart
 from payments.domain.entities.cart_item import CartItem
@@ -45,11 +44,6 @@ from payments.infrastructure.database.repositories.product_price import (
     ProductPriceRepositoryImpl,
 )
 from payments.infrastructure.database.repositories.tax import TaxRepositoryImpl
-
-
-@pytest.fixture
-def call():
-    return async_to_sync
 
 
 @pytest.fixture
@@ -113,83 +107,83 @@ def payment_provider_repo() -> PaymentProviderRepositoryImpl:
 
 
 @pytest.fixture
-def exchange_rate(exchange_rate_repo, db, call) -> ExchangeRate:
+def exchange_rate(exchange_rate_repo, db) -> ExchangeRate:
     entity = ExchangeRate(currency=Currency.EUR, coef=Decimal("1.10"))
-    call(exchange_rate_repo.save)(entity)
+    exchange_rate_repo.save(entity)
     return entity
 
 
 @pytest.fixture
-def discount(discount_repo, db, call) -> Discount:
+def discount(discount_repo, db) -> Discount:
     entity = Discount(
         name="Test Discount",
         type=DiscountType.PERCENTAGE,
         value=Decimal("10.00"),
     )
-    call(discount_repo.save)(entity)
+    discount_repo.save(entity)
     return entity
 
 
 @pytest.fixture
-def inactive_discount(discount_repo, db, call) -> Discount:
+def inactive_discount(discount_repo, db) -> Discount:
     entity = Discount(
         name="Inactive Discount",
         type=DiscountType.FIXED,
         value=Decimal("5.00"),
         is_active=False,
     )
-    call(discount_repo.save)(entity)
+    discount_repo.save(entity)
     return entity
 
 
 @pytest.fixture
-def tax(tax_repo, db, call) -> Tax:
+def tax(tax_repo, db) -> Tax:
     entity = Tax(name="VAT", rate=20)
-    call(tax_repo.save)(entity)
+    tax_repo.save(entity)
     return entity
 
 
 @pytest.fixture
-def product(product_repo, db, call) -> Product:
+def product(product_repo, db) -> Product:
     entity = Product(name="Test Product", is_active=True)
-    call(product_repo.save)(entity)
+    product_repo.save(entity)
     return entity
 
 
 @pytest.fixture
-def inactive_product(product_repo, db, call) -> Product:
+def inactive_product(product_repo, db) -> Product:
     entity = Product(name="Inactive Product", is_active=False)
-    call(product_repo.save)(entity)
+    product_repo.save(entity)
     return entity
 
 
 @pytest.fixture
-def product_price(product_price_repo, product, db, call) -> ProductPrice:
+def product_price(product_price_repo, product, db) -> ProductPrice:
     entity = ProductPrice(
         currency=Currency.EUR, price=Decimal("10.00"), product=product
     )
-    call(product_price_repo.save)(entity)
+    product_price_repo.save(entity)
     return entity
 
 
 @pytest.fixture
-def payment_provider(payment_provider_repo, db, call) -> PaymentProvider:
+def payment_provider(payment_provider_repo, db) -> PaymentProvider:
     entity = PaymentProvider(id=None, name="test-provider")
-    call(payment_provider_repo.save)(entity)
+    payment_provider_repo.save(entity)
     return entity
 
 
 @pytest.fixture
-def cart(cart_repo, db, call) -> Cart:
+def cart(cart_repo, db) -> Cart:
     entity = Cart()
-    call(cart_repo.save)(entity)
+    cart_repo.save(entity)
     return entity
 
 
 @pytest.fixture
-def cart_item(cart_item_repo, cart, product, product_price, db, call) -> CartItem:
+def cart_item(cart_item_repo, cart, product, product_price, db) -> CartItem:
     entity = CartItem(product=product, product_price=product_price, cart=cart)
-    call(cart_item_repo.save)(entity)
+    cart_item_repo.save(entity)
     return entity
 
 

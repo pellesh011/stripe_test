@@ -49,12 +49,12 @@ def test_get_products_returns_prices_in_requested_currency(
 
 @pytest.mark.django_db
 def test_get_products_without_currency_returns_all_active_prices(
-    client, product, product_price, product_price_repo, call
+    client, product, product_price, product_price_repo
 ):
     rub_price = ProductPrice(
         currency=Currency.RUB, price=Decimal("5.00"), product=product
     )
-    call(product_price_repo.save)(rub_price)
+    product_price_repo.save(rub_price)
 
     response = client.get(_url())
 
@@ -67,12 +67,14 @@ def test_get_products_without_currency_returns_all_active_prices(
 
 
 @pytest.mark.django_db
-def test_get_products_filters_prices_by_currency(client, product, product_price):
+def test_get_products_returns_fallback_price_when_currency_not_found(
+    client, product, product_price
+):
     response = client.get(_url(currency="rub"))
 
     assert response.status_code == 200
     data = response.json()
-    assert data["products"][0]["prices"] == []
+    assert data["products"][0]["prices"][0]["id"] == product_price.id
 
 
 @pytest.mark.django_db
@@ -103,9 +105,9 @@ def test_get_products_invalid_pagination_returns_400(client, params):
 
 
 @pytest.mark.django_db
-def test_get_products_applies_pagination(client, product, product_repo, call):
+def test_get_products_applies_pagination(client, product, product_repo):
     for index in range(4):
-        call(product_repo.save)(Product(name=f"Product {index}", is_active=True))
+        product_repo.save(Product(name=f"Product {index}", is_active=True))
 
     first_page = client.get(_url(limit=3, offset=0)).json()["products"]
     second_page = client.get(_url(limit=3, offset=3)).json()["products"]
