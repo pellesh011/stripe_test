@@ -29,7 +29,7 @@ class PaymentAttemptRepositoryImpl(PaymentAttemptRepository):
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
         return self._to_entity(model)
-    
+
     def get_by_id_for_update(self, id: int) -> PaymentAttempt:
         locked = (
             PaymentAttemptModel.objects.select_for_update()
@@ -46,7 +46,6 @@ class PaymentAttemptRepositoryImpl(PaymentAttemptRepository):
         except ObjectDoesNotExist:
             raise EntityNotFoundError() from None
         return self._to_entity(model)
-
 
     def get_by_payment_id(
         self, payment_id: int, limit: int = 10, offset: int = 0

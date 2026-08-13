@@ -29,7 +29,7 @@ class StripePaymentGateway(PaymentGateway):
         if order.tax is not None:
             metadata["tax_id"] = str(order.tax.id)
 
-        intent =  stripe.PaymentIntent.create(
+        intent = stripe.PaymentIntent.create(
             amount=CurrencyMinorUnit.to_minor_units(amount, currency),
             currency=currency.value,
             metadata=metadata,

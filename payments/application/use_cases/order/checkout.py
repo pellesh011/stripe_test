@@ -42,7 +42,7 @@ class CheckoutUseCase:
         payments: PaymentRepository,
         payment_attempts: PaymentAttemptRepository,
         payment_providers: PaymentProviderRepository,
-        payment_gateway: PaymentGateway
+        payment_gateway: PaymentGateway,
     ):
         self.uow = uow
         self.carts = carts
@@ -121,7 +121,7 @@ class CheckoutUseCase:
             payment_attempt.status = PaymentAttemptStatus.PROCESSING
 
             self.payment_attempts.save(payment_attempt)
-        
+
         return payment_intent.client_secret
 
     @staticmethod

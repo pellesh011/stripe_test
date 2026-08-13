@@ -29,9 +29,7 @@ class CurrencyMinorUnit:
         amount: Decimal | int | float,
         currency: Currency,
     ) -> int:
-        return int(
-            amount * cls.get_multiplier(currency)
-        )
+        return int(amount * cls.get_multiplier(currency))
 
 
 class ExchangeRate:

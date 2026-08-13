@@ -247,7 +247,7 @@ def buy_in_one_click(request) -> JsonResponse:
 
     try:
         data = json.loads(request.body)
-    except (json.JSONDecodeError, UnicodeDecodeError):
+    except json.JSONDecodeError, UnicodeDecodeError:
         return JsonResponse(
             {"error": "invalid JSON body"},
             status=400,

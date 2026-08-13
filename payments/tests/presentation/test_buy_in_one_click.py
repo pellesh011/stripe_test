@@ -71,9 +71,7 @@ def test_buy_in_one_click_invalid_json_returns_400(client):
 
 
 @pytest.mark.django_db
-def test_buy_in_one_click_missing_required_field_returns_400(
-    client, product_price
-):
+def test_buy_in_one_click_missing_required_field_returns_400(client, product_price):
     response = _post(client, {"product_price_id": product_price.id})
 
     assert response.status_code == 400
@@ -110,9 +108,7 @@ def test_buy_in_one_click_product_not_found_returns_404(client):
 
 
 @pytest.mark.django_db
-def test_buy_in_one_click_no_provider_returns_404(
-    client, product, product_price
-):
+def test_buy_in_one_click_no_provider_returns_404(client, product, product_price):
     assert product.id is not None
     assert product_price.id is not None
     response = _post(client, _payload(product.id, product_price.id))

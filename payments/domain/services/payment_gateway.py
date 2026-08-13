@@ -12,6 +12,7 @@ class PaymentResult:
     client_secret: str
     status: str
 
+
 class PaymentGateway(ABC):
     @abstractmethod
     def create_payment(
