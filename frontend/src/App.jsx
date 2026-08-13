@@ -1,6 +1,12 @@
-import { useEffect, useState } from "react";
-import { getProducts, CURRENCY_LABELS } from "./api/products.js";
+import { useCallback, useEffect, useState } from "react";
+import {
+  buyInOneClick,
+  getProducts,
+  CURRENCY_LABELS,
+} from "./api/products.js";
 import ProductCard from "./components/ProductCard.jsx";
+import BuyInOneClickModal from "./components/BuyInOneClickModal.jsx";
+import PaymentPage from "./components/PaymentPage.jsx";
 
 const CURRENCIES = ["usd", "rub", "eur"];
 
@@ -9,6 +15,8 @@ export default function App() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [buyProduct, setBuyProduct] = useState(null);
+  const [payment, setPayment] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -30,6 +38,36 @@ export default function App() {
       cancelled = true;
     };
   }, [currency]);
+
+  const handleBuyOneClick = useCallback(
+    async (productId, cur) => {
+      const price = buyProduct?.price ?? null;
+      const result = await buyInOneClick(productId, price?.id, cur);
+      if (!result.client_secret) {
+        throw new Error("Сервер не вернул client_secret");
+      }
+      setBuyProduct(null);
+      setPayment({
+        clientSecret: result.client_secret,
+        order: {
+          id: result.order_id,
+          amount: result.amount,
+          currency: result.currency,
+        },
+      });
+    },
+    [buyProduct]
+  );
+
+  if (payment) {
+    return (
+      <PaymentPage
+        clientSecret={payment.clientSecret}
+        order={payment.order}
+        onBack={() => setPayment(null)}
+      />
+    );
+  }
 
   return (
     <div className="app">
@@ -60,9 +98,22 @@ export default function App() {
       {!loading && !error && products.length > 0 && (
         <div className="app__grid">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              onBuyOneClick={(p, price) => setBuyProduct({ product: p, price })}
+            />
           ))}
         </div>
+      )}
+
+      {buyProduct && (
+        <BuyInOneClickModal
+          product={buyProduct.product}
+          price={buyProduct.price}
+          onClose={() => setBuyProduct(null)}
+          onSubmit={handleBuyOneClick}
+        />
       )}
     </div>
   );

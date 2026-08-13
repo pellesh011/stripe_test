@@ -20,3 +20,22 @@ export async function getProducts(currency) {
 export function formatPrice(price, currency) {
   return `${price} ${CURRENCY_LABELS[currency] || currency.toUpperCase()}`;
 }
+
+export async function buyInOneClick(productId, productPriceId, currency) {
+  const response = await fetch("/api/buy-in-one-click/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      product_id: productId,
+      product_price_id: productPriceId,
+      currency,
+    }),
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(data?.error || `API error: ${response.status}`);
+  }
+  return data;
+}

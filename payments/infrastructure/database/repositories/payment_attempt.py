@@ -62,6 +62,14 @@ class PaymentAttemptRepositoryImpl(PaymentAttemptRepository):
         payment = build_payment(model.payment)
         return payment_attempt_to_entity(model, provider, payment)
 
+    def get_all_by_external_id(self, external_id: str) -> list[PaymentAttempt]:
+        qs = (
+            PaymentAttemptModel.objects.filter(external_id=external_id)
+            .select_related(*PAYMENT_ATTEMPT_SELECT_RELATED)
+            .order_by("id")
+        )
+        return [self._to_entity(model) for model in qs]
+
     def save(self, payment_attempt: PaymentAttempt) -> None:
         assert payment_attempt.provider.id is not None
         assert payment_attempt.payment.id is not None

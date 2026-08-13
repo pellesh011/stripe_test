@@ -2,6 +2,7 @@ import json
 from unittest.mock import patch
 
 import pytest
+import stripe
 from django.test import Client
 from django.urls import reverse
 
@@ -58,7 +59,11 @@ def test_checkout_success(
     )
 
     assert response.status_code == 200
-    assert response.json() == {"client_secret": "cs_test_secret"}
+    data = response.json()
+    assert data["client_secret"] == "cs_test_secret"
+    assert isinstance(data["order_id"], int)
+    assert data["amount"] == "11.00"
+    assert data["currency"] == "eur"
 
     assert cart_repo.get_by_id(cart.id).status is CartStatus.CONVERTED
 
@@ -74,7 +79,11 @@ def test_checkout_without_optional_fields(
     response = _post(client, _payload(cart.id, payment_provider.id))
 
     assert response.status_code == 200
-    assert response.json() == {"client_secret": "cs_test_secret"}
+    data = response.json()
+    assert data["client_secret"] == "cs_test_secret"
+    assert isinstance(data["order_id"], int)
+    assert data["amount"] == "10.00"
+    assert data["currency"] == "eur"
 
 
 @pytest.mark.django_db
@@ -214,3 +223,23 @@ def test_checkout_provider_not_found_returns_404(client, cart_item, exchange_rat
 
     assert response.status_code == 404
     assert response.json() == {"error": "Entity not found"}
+
+
+@pytest.mark.django_db
+@patch("stripe.PaymentIntent.create")
+def test_checkout_amount_too_small_returns_400(
+    mock_create,
+    client,
+    cart_item,
+    exchange_rate,
+    payment_provider,
+):
+    mock_create.side_effect = stripe.InvalidRequestError(
+        "Amount must convert to at least 50 cents.",
+        param="amount",
+    )
+    assert cart_item.cart is not None
+    response = _post(client, _payload(cart_item.cart.id, payment_provider.id))
+
+    assert response.status_code == 400
+    assert response.json() == {"error": "Amount is too small"}

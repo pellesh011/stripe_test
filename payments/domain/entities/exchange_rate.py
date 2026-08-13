@@ -51,11 +51,10 @@ class ExchangeRate:
         self,
         currency: Currency,
         coef: Decimal,
+        base_currency: Currency = Currency.USD,
         is_active: bool = True,
         id: int | None = None,
     ):
-        base_currency = Currency.USD
-
         if coef < 0:
             raise ExchangeRateValueError()
 
@@ -109,11 +108,13 @@ class ExchangeRate:
         currency: Currency,
         coef: Decimal,
         is_active: bool,
+        base_currency: Currency = Currency.USD,
         id: int | None = None,
     ) -> ExchangeRate:
         return cls(
             currency=currency,
             coef=coef,
+            base_currency=base_currency,
             is_active=is_active,
             id=id,
         )

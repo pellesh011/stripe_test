@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from payments.application.dto.checkout import CheckoutDTO
+from payments.application.dto.checkout import CheckoutDTO, CheckoutResult
 from payments.domain.entities.cart import Cart, CartStatus
 from payments.domain.entities.exchange_rate import Currency, ExchangeRate
 from payments.domain.entities.order import Order
@@ -13,6 +13,7 @@ from payments.domain.entities.payment_attempts import (
 from payments.domain.exceptions import (
     CartEmptyError,
     CartNotActiveError,
+    EntityNotFoundError,
     ProductNotActiveError,
     ProductPriceNotActiveError,
 )
@@ -56,18 +57,18 @@ class CheckoutUseCase:
         self.payment_providers = payment_providers
         self.payment_gateway = payment_gateway
 
-    def execute(self, data: CheckoutDTO) -> str:
+    def execute(self, data: CheckoutDTO) -> CheckoutResult:
         currency = Currency(data.currency)
 
         with self.uow:
             cart = self.carts.get_by_id_for_update(data.cart_id)
             self._validate(cart)
 
-            exchange_rate = self.exchange_rates.get_active_by_code(currency)
+            exchange_rates = self.exchange_rates.get_all_active_by_code(currency)
             order = self._create_order(
                 cart,
                 currency,
-                exchange_rate,
+                exchange_rates,
             )
 
             if data.tax_id is not None:
@@ -122,7 +123,13 @@ class CheckoutUseCase:
 
             self.payment_attempts.save(payment_attempt)
 
-        return payment_intent.client_secret
+        assert order.id is not None
+        return CheckoutResult(
+            order_id=order.id,
+            amount=order.total(),
+            currency=order.currency,
+            client_secret=payment_intent.client_secret,
+        )
 
     @staticmethod
     def _validate(cart: Cart) -> None:
@@ -138,10 +145,23 @@ class CheckoutUseCase:
 
     @staticmethod
     def _create_order(
-        cart: Cart, currency: Currency, exchange_rate: ExchangeRate
+        cart: Cart,
+        currency: Currency,
+        exchange_rates: list[ExchangeRate],
     ) -> Order:
         order = Order(currency=currency, cart=cart)
         for cart_item in cart.items:
+            exchange_rate = next(
+                (
+                    rate
+                    for rate in exchange_rates
+                    if rate.base_currency == currency
+                    and rate.currency == cart_item.product_price.currency
+                ),
+                None,
+            )
+            if exchange_rate is None:
+                raise EntityNotFoundError()
             price = (cart_item.product_price.price * exchange_rate.coef).quantize(
                 Decimal("0.01")
             )
