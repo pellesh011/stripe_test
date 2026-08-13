@@ -1,6 +1,8 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 
+import pytest
+
 from payments.domain.entities.cart import Cart
 from payments.domain.entities.exchange_rate import Currency
 from payments.domain.entities.order import Order
@@ -10,6 +12,7 @@ from payments.domain.entities.payment_attempts import (
     PaymentAttemptStatus,
 )
 from payments.domain.entities.payment_provider import PaymentProvider
+from payments.domain.exceptions import IdentificatorError
 
 
 def make_payment_attempt() -> PaymentAttempt:
@@ -66,6 +69,20 @@ def test_payment_attempt_mark_cancelled():
 
     assert test_attempt.status == PaymentAttemptStatus.CANCELLED
     assert test_attempt.completed_at is not None
+
+
+def test_payment_attempt_get_id_raises_when_not_saved():
+    test_attempt = make_payment_attempt()
+
+    with pytest.raises(IdentificatorError):
+        test_attempt.get_id()
+
+
+def test_payment_attempt_get_id():
+    test_attempt = make_payment_attempt()
+    test_attempt.id = 7
+
+    assert test_attempt.get_id() == 7
 
 
 def test_payment_attempt_restore():

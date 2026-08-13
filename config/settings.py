@@ -37,6 +37,8 @@ DATABASE_USER = os.getenv("DATABASE_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
 DATABASE_DB = os.getenv("DATABASE_DB")
 
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+
 
 # Application definition
 

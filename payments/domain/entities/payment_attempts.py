@@ -4,6 +4,7 @@ from enum import Enum
 
 from payments.domain.entities.payment import Payment
 from payments.domain.entities.payment_provider import PaymentProvider
+from payments.domain.exceptions import IdentificatorError
 
 
 class PaymentAttemptStatus(Enum):
@@ -84,3 +85,8 @@ class PaymentAttempt:
 
     def mark_cancelled(self) -> None:
         self._set_status(PaymentAttemptStatus.CANCELLED)
+
+    def get_id(self) -> int:
+        if self.id is None:
+            raise IdentificatorError()
+        return self.id

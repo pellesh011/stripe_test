@@ -19,6 +19,12 @@ class PaymentProviderRepositoryImpl(PaymentProviderRepository):
             raise EntityNotFoundError() from None
         return payment_provider_to_entity(model)
 
+    def get_default(self) -> PaymentProvider:
+        model = PaymentProviderModel.objects.order_by("id").first()
+        if model is None:
+            raise EntityNotFoundError() from None
+        return payment_provider_to_entity(model)
+
     def save(self, payment_provider: PaymentProvider) -> None:
         if payment_provider.id is None:
             model = PaymentProviderModel.objects.create(
