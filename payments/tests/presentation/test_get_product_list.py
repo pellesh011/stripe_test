@@ -67,12 +67,14 @@ def test_get_products_without_currency_returns_all_active_prices(
 
 
 @pytest.mark.django_db
-def test_get_products_filters_prices_by_currency(client, product, product_price):
+def test_get_products_returns_fallback_price_when_currency_not_found(
+    client, product, product_price
+):
     response = client.get(_url(currency="rub"))
 
     assert response.status_code == 200
     data = response.json()
-    assert data["products"][0]["prices"] == []
+    assert data["products"][0]["prices"][0]["id"] == product_price.id
 
 
 @pytest.mark.django_db
