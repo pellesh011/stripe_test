@@ -28,6 +28,18 @@ class GetProductListUseCase:
             product_ids,
             currency=currency,
         )
+        products_with_price = {price.product.id for price in prices}
+
+        products_without_price = [
+            product_id
+            for product_id in product_ids
+            if product_id not in products_with_price
+        ]
+
+        prices_other_currency = self.product_prices.get_active_by_product_ids(
+            products_without_price,
+        )
+        prices.extend(prices_other_currency)
         prices_by_product_id: dict[int, list[ProductPrice]] = {}
         for price in prices:
             if price.product.id is not None:

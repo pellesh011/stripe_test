@@ -13,8 +13,8 @@ class ProductPrice:
 
     __slots__ = (
         "_currency",
-        "_id",     
-        "_is_active",   
+        "_id",
+        "_is_active",
         "_price",
         "_product",
     )
@@ -36,9 +36,7 @@ class ProductPrice:
         if name == "id":
             object.__setattr__(self, "_id", value)
         else:
-            raise AttributeError(
-                f"{type(self).__name__}.{name} is immutable"
-            )
+            raise AttributeError(f"{type(self).__name__}.{name} is immutable")
 
     @property
     def id(self) -> int | None:
