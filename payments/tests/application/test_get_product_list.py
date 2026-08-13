@@ -111,7 +111,7 @@ def test_execute_excludes_inactive_prices(
 
 
 @pytest.mark.django_db
-def test_execute_product_without_price_in_requested_currency_has_no_prices(
+def test_execute_product_without_price_in_requested_currency_returns_fallback_price(
     product_repo,
     product_price_repo,
     product,
@@ -124,7 +124,7 @@ def test_execute_product_without_price_in_requested_currency_has_no_prices(
 
     assert len(result) == 1
     assert result[0].id == product.id
-    assert result[0].prices == []
+    assert [price.id for price in result[0].prices] == [product_price.id]
 
 
 @pytest.mark.django_db

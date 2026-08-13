@@ -58,6 +58,12 @@ class ProductPrice:
     def is_active(self) -> bool:
         return self._is_active
 
+    def set_id(self, id: int) -> None:
+        if self._id is not None:
+            raise ValueError("ProductPrice id is already set")
+
+        object.__setattr__(self, "_id", id)
+
     def set_active(self, is_active: bool) -> bool:
         object.__setattr__(self, "_is_active", is_active)
         return self._is_active
