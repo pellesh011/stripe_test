@@ -50,10 +50,7 @@ class ExchangeRate:
         if name == "id":
             object.__setattr__(self, "_id", value)
         else:
-
-            raise AttributeError(
-                f"{type(self).__name__}.{name} is immutable"
-            )
+            raise AttributeError(f"{type(self).__name__}.{name} is immutable")
 
     @property
     def id(self) -> int | None:

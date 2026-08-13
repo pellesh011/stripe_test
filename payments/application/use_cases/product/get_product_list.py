@@ -28,10 +28,7 @@ class GetProductListUseCase:
             product_ids,
             currency=currency,
         )
-        products_with_price = {
-            price.product.id
-            for price in prices
-        }
+        products_with_price = {price.product.id for price in prices}
 
         products_without_price = [
             product_id
