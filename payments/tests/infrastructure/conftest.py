@@ -108,7 +108,11 @@ def payment_provider_repo() -> PaymentProviderRepositoryImpl:
 
 @pytest.fixture
 def exchange_rate(exchange_rate_repo, db) -> ExchangeRate:
-    entity = ExchangeRate(currency=Currency.EUR, coef=Decimal("1.10"))
+    entity = ExchangeRate(
+        base_currency=Currency.EUR,
+        currency=Currency.EUR,
+        coef=Decimal("1"),
+    )
     exchange_rate_repo.save(entity)
     return entity
 

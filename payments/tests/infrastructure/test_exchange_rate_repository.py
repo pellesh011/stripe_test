@@ -12,7 +12,8 @@ def test_get_by_id(exchange_rate_repo, exchange_rate):
     loaded = exchange_rate_repo.get_by_id(exchange_rate.id)
     assert loaded.id == exchange_rate.id
     assert loaded.currency == Currency.EUR
-    assert loaded.coef == Decimal("1.10")
+    assert loaded.base_currency == Currency.EUR
+    assert loaded.coef == Decimal("1")
     assert loaded.is_active is True
 
 
@@ -58,22 +59,49 @@ def test_get_active_pagination_limit_and_offset(exchange_rate_repo, exchange_rat
 
 @pytest.mark.django_db
 def test_get_active_by_code(exchange_rate_repo, exchange_rate):
-    loaded = exchange_rate_repo.get_active_by_code(Currency.EUR)
-    assert loaded.currency == Currency.EUR
-    assert loaded.is_active is True
+    loaded = exchange_rate_repo.get_all_active_by_code(Currency.EUR)
+    assert [item.currency for item in loaded] == [Currency.EUR]
+    assert all(item.is_active for item in loaded)
 
 
 @pytest.mark.django_db
-def test_get_active_by_code_not_found(exchange_rate_repo, exchange_rate):
+def test_get_active_by_code_filters_by_base_currency(
+    exchange_rate_repo, exchange_rate
+):
+    other = ExchangeRate(
+        base_currency=Currency.USD,
+        currency=Currency.RUB,
+        coef=Decimal("0.012"),
+    )
+    exchange_rate_repo.save(other)
+
+    loaded = exchange_rate_repo.get_all_active_by_code(Currency.EUR)
+
+    assert [item.currency for item in loaded] == [Currency.EUR]
+
+
+@pytest.mark.django_db
+def test_get_active_by_code_returns_empty_when_none(
+    exchange_rate_repo, exchange_rate
+):
+    loaded = exchange_rate_repo.get_all_active_by_code(Currency.RUB)
+
+    assert loaded == []
+
+
+@pytest.mark.django_db
+def test_get_active_by_code_ignores_inactive(exchange_rate_repo, exchange_rate):
     inactive = ExchangeRate(
+        base_currency=Currency.EUR,
         currency=Currency.RUB,
         coef=Decimal("0.012"),
         is_active=False,
     )
     exchange_rate_repo.save(inactive)
 
-    with pytest.raises(EntityNotFoundError):
-        exchange_rate_repo.get_active_by_code(Currency.RUB)
+    loaded = exchange_rate_repo.get_all_active_by_code(Currency.EUR)
+
+    assert [item.currency for item in loaded] == [Currency.EUR]
 
 
 @pytest.mark.django_db

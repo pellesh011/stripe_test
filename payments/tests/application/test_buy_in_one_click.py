@@ -118,15 +118,15 @@ def test_execute_creates_order_and_converts_cart(
     assert recorded_order.currency is Currency.EUR
     assert len(recorded_order.items) == 1
     assert recorded_order.items[0].product.id == product.id
-    assert recorded_order.items[0].price == Decimal("11.00")
-    assert amount == Decimal("11.00")
+    assert recorded_order.items[0].price == Decimal("10.00")
+    assert amount == Decimal("10.00")
     assert currency is Currency.EUR
 
     loaded_cart = cart_repo.get_by_id(recorded_order.cart.id)
     assert loaded_cart.status is CartStatus.CONVERTED
 
     payment = payment_repo.get_by_order_id(recorded_order.id)
-    assert payment.amount == Decimal("11.00")
+    assert payment.amount == Decimal("10.00")
 
     attempts = payment_attempt_repo.get_by_payment_id(payment.id)
     assert len(attempts) == 1

@@ -23,15 +23,14 @@ class ExchangeRateRepositoryImpl(ExchangeRateRepository):
         ]
         return [exchange_rate_to_entity(model) for model in qs]
 
-    def get_active_by_code(self, currency: Currency) -> ExchangeRate:
-        try:
-            model = ExchangeRateModel.objects.filter(
-                is_active=True,
-                currency=currency.value,
-            ).get()
-        except ObjectDoesNotExist:
-            raise EntityNotFoundError() from None
-        return exchange_rate_to_entity(model)
+    def get_all_active_by_code(
+        self, base_currency: Currency
+    ) -> list[ExchangeRate]:
+        qs = ExchangeRateModel.objects.filter(
+            is_active=True,
+            base_currency=base_currency.value,
+        ).order_by("id")
+        return [exchange_rate_to_entity(model) for model in qs]
 
     def save(self, exchange_rate: ExchangeRate) -> None:
         if exchange_rate.id is None:

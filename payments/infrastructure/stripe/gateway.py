@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 
 import stripe
@@ -7,8 +8,13 @@ from payments.domain.entities.exchange_rate import (
     CurrencyMinorUnit,
 )
 from payments.domain.entities.order import Order
-from payments.domain.exceptions import PaymentClientSecretMissingError
+from payments.domain.exceptions import (
+    PaymentAmountTooSmallError,
+    PaymentClientSecretMissingError,
+)
 from payments.domain.services.payment_gateway import PaymentGateway, PaymentResult
+
+logger = logging.getLogger(__name__)
 
 
 class StripePaymentGateway(PaymentGateway):
@@ -29,10 +35,38 @@ class StripePaymentGateway(PaymentGateway):
         if order.tax is not None:
             metadata["tax_id"] = str(order.tax.id)
 
-        intent = stripe.PaymentIntent.create(
-            amount=CurrencyMinorUnit.to_minor_units(amount, currency),
-            currency=currency.value,
-            metadata=metadata,
+        converted_amount = CurrencyMinorUnit.to_minor_units(amount, currency)
+        try:
+            intent = stripe.PaymentIntent.create(
+                amount=converted_amount,
+                currency=currency.value,
+                metadata=metadata,
+            )
+        except stripe.InvalidRequestError as exc:
+            if exc.param == "amount":
+                logger.error(
+                    "Amount is too small for payment: "
+                    "order_id=%s amount=%s currency=%s error=%s converted_amount=%s",
+                    order.id,
+                    amount,
+                    currency.value,
+                    exc,
+                    converted_amount,
+                )
+                raise PaymentAmountTooSmallError(str(exc)) from exc
+            logger.exception(
+                "Stripe InvalidRequestError while creating PaymentIntent: "
+                "order_id=%s amount=%s currency=%s",
+                order.id,
+                amount,
+                currency.value,
+            )
+            raise
+        logger.info(
+            "PaymentIntent created: order_id=%s intent_id=%s status=%s",
+            order.id,
+            intent.id,
+            intent.status,
         )
         if intent.client_secret is None:
             raise PaymentClientSecretMissingError(
