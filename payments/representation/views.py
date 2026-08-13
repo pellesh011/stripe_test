@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -10,8 +11,6 @@ from payments.application.use_cases.product.get_product_list import (
     GetProductListUseCase,
 )
 from payments.domain.entities.exchange_rate import Currency
-from payments.domain.entities.order import Order
-from payments.domain.entities.payment import Payment
 from payments.domain.entities.product import Product
 from payments.domain.exceptions import (
     CartEmptyError,
@@ -50,6 +49,7 @@ from payments.infrastructure.database.repositories.product_price import (
 )
 from payments.infrastructure.database.repositories.tax import TaxRepositoryImpl
 from payments.infrastructure.database.uow import DjangoUnitOfWork
+from payments.infrastructure.stripe.gateway import StripePaymentGateway
 
 _CHECKOUT_ERRORS: dict[type[Exception], tuple[int, str]] = {
     EntityNotFoundError: (404, "Entity not found"),
@@ -145,54 +145,6 @@ def _parse_optional_int(data, field: str) -> tuple[int | None, str | None]:
     return None, f"{field} must be an integer"
 
 
-def _serialize_order_item(item) -> dict:
-    return {
-        "id": item.id,
-        "product_id": item.product.id,
-        "product_name": item.product.name,
-        "price": str(item.price),
-        "currency": item.exchange_rate.currency.value,
-    }
-
-
-def _serialize_order(order: Order, payment: Payment) -> dict:
-    return {
-        "id": order.id,
-        "currency": order.currency.value,
-        "status": order.status.value,
-        "subtotal": str(order.subtotal()),
-        "tax_amount": str(order.tax_amount()),
-        "discount_amount": str(order.discount_amount()),
-        "total": str(order.total()),
-        "tax": (
-            {
-                "id": order.tax.id,
-                "name": order.tax.name,
-                "rate": order.tax.rate,
-            }
-            if order.tax is not None
-            else None
-        ),
-        "discount": (
-            {
-                "id": order.discount.id,
-                "name": order.discount.name,
-                "type": order.discount.type.value,
-                "value": str(order.discount.value),
-            }
-            if order.discount is not None
-            else None
-        ),
-        "items": [_serialize_order_item(item) for item in order.items],
-        "payment": {
-            "id": payment.id,
-            "amount": str(payment.amount),
-            "currency": payment.currency.value,
-            "status": payment.status.value,
-        },
-    }
-
-
 @csrf_exempt
 def checkout(request) -> JsonResponse:
     if request.method != "POST":
@@ -258,10 +210,11 @@ def checkout(request) -> JsonResponse:
         payments=PaymentRepositoryImpl(),
         payment_attempts=PaymentAttemptRepositoryImpl(),
         payment_providers=PaymentProviderRepositoryImpl(),
+        payment_gateway=StripePaymentGateway(api_key=settings.STRIPE_SECRET_KEY),
     )
 
     try:
-        order = use_case.execute(
+        client_secret = use_case.execute(
             CheckoutDTO(
                 cart_id=cart_id,
                 currency=currency,
@@ -274,6 +227,4 @@ def checkout(request) -> JsonResponse:
         status, message = _CHECKOUT_ERRORS[type(exc)]
         return JsonResponse({"error": message}, status=status)
 
-    assert order.id is not None
-    payment = PaymentRepositoryImpl().get_by_order_id(order.id)
-    return JsonResponse(_serialize_order(order, payment))
+    return JsonResponse({"client_secret": client_secret})

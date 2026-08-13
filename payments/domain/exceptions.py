@@ -60,3 +60,11 @@ class PaymentCurrencyMismatchError(Exception):
 
 class EntityNotFoundError(Exception):
     pass
+
+
+class IdentificatorError(Exception):
+    pass
+
+
+class PaymentClientSecretMissingError(Exception):
+    pass
