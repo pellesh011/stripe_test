@@ -156,9 +156,9 @@ class CheckoutUseCase:
             )
             if exchange_rate is None:
                 raise EntityNotFoundError()
-            price = (
-                cart_item.product_price.price * exchange_rate.coef
-            ).quantize(Decimal("0.01"))
+            price = (cart_item.product_price.price * exchange_rate.coef).quantize(
+                Decimal("0.01")
+            )
             order.add(
                 OrderItem(
                     product=cart_item.product,

@@ -23,9 +23,7 @@ class ExchangeRateRepositoryImpl(ExchangeRateRepository):
         ]
         return [exchange_rate_to_entity(model) for model in qs]
 
-    def get_all_active_by_code(
-        self, base_currency: Currency
-    ) -> list[ExchangeRate]:
+    def get_all_active_by_code(self, base_currency: Currency) -> list[ExchangeRate]:
         qs = ExchangeRateModel.objects.filter(
             is_active=True,
             base_currency=base_currency.value,

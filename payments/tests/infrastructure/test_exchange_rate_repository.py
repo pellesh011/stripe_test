@@ -65,9 +65,7 @@ def test_get_active_by_code(exchange_rate_repo, exchange_rate):
 
 
 @pytest.mark.django_db
-def test_get_active_by_code_filters_by_base_currency(
-    exchange_rate_repo, exchange_rate
-):
+def test_get_active_by_code_filters_by_base_currency(exchange_rate_repo, exchange_rate):
     other = ExchangeRate(
         base_currency=Currency.USD,
         currency=Currency.RUB,
@@ -81,9 +79,7 @@ def test_get_active_by_code_filters_by_base_currency(
 
 
 @pytest.mark.django_db
-def test_get_active_by_code_returns_empty_when_none(
-    exchange_rate_repo, exchange_rate
-):
+def test_get_active_by_code_returns_empty_when_none(exchange_rate_repo, exchange_rate):
     loaded = exchange_rate_repo.get_all_active_by_code(Currency.RUB)
 
     assert loaded == []
