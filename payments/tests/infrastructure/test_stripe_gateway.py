@@ -9,7 +9,10 @@ from payments.domain.entities.discount import Discount, DiscountType
 from payments.domain.entities.exchange_rate import Currency
 from payments.domain.entities.order import Order
 from payments.domain.entities.tax import Tax
-from payments.domain.exceptions import PaymentClientSecretMissingError
+from payments.domain.exceptions import (
+    PaymentAmountTooSmallError,
+    PaymentClientSecretMissingError,
+)
 from payments.domain.services.payment_gateway import PaymentGateway, PaymentResult
 from payments.infrastructure.stripe.gateway import StripePaymentGateway
 
@@ -113,3 +116,40 @@ def test_create_payment_raises_when_client_secret_missing(mock_create):
             amount=Decimal("10.00"),
             currency=Currency.EUR,
         )
+
+
+@patch("stripe.PaymentIntent.create")
+def test_create_payment_raises_when_amount_too_small(mock_create, caplog):
+    mock_create.side_effect = stripe.InvalidRequestError(
+        "Amount must convert to at least 50 cents.",
+        param="amount",
+    )
+    gateway = StripePaymentGateway(api_key=API_KEY)
+
+    with pytest.raises(PaymentAmountTooSmallError):
+        gateway.create_payment(
+            order=build_order(),
+            amount=Decimal("0.25"),
+            currency=Currency.USD,
+        )
+
+    assert "Amount is too small for payment" in caplog.text
+    assert "order_id=42" in caplog.text
+
+
+@patch("stripe.PaymentIntent.create")
+def test_create_payment_rethrows_unrelated_invalid_request(mock_create, caplog):
+    mock_create.side_effect = stripe.InvalidRequestError(
+        "No such PaymentIntent",
+        param=None,
+    )
+    gateway = StripePaymentGateway(api_key=API_KEY)
+
+    with pytest.raises(stripe.InvalidRequestError):
+        gateway.create_payment(
+            order=build_order(),
+            amount=Decimal("10.00"),
+            currency=Currency.EUR,
+        )
+
+    assert "Amount is too small for payment" not in caplog.text

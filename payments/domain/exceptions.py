@@ -68,3 +68,7 @@ class IdentificatorError(Exception):
 
 class PaymentClientSecretMissingError(Exception):
     pass
+
+
+class PaymentAmountTooSmallError(Exception):
+    pass

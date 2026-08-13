@@ -6,7 +6,7 @@ from payments.application.dto.checkout import CheckoutDTO
 from payments.application.use_cases.order.checkout import CheckoutUseCase
 from payments.domain.entities.cart import Cart, CartStatus
 from payments.domain.entities.cart_item import CartItem
-from payments.domain.entities.exchange_rate import Currency
+from payments.domain.entities.exchange_rate import Currency, ExchangeRate
 from payments.domain.entities.order import OrderStatus
 from payments.domain.entities.payment_attempts import PaymentAttemptStatus
 from payments.domain.entities.product import Product
@@ -124,17 +124,17 @@ def test_execute_creates_order(
     assert recorded_order.currency is Currency.EUR
     assert recorded_order.status is OrderStatus.CREATED
     assert len(recorded_order.items) == 1
-    assert recorded_order.items[0].price == Decimal("11.00")
+    assert recorded_order.items[0].price == Decimal("10.00")
     assert recorded_order.tax is not None
     assert recorded_order.tax.id == tax.id
     assert recorded_order.discount is not None
     assert recorded_order.discount.id == discount.id
-    assert amount == Decimal("12.10")
+    assert amount == Decimal("11.00")
     assert currency is Currency.EUR
 
     loaded_order = order_repo.get_by_id(recorded_order.id)
     assert len(loaded_order.items) == 1
-    assert loaded_order.items[0].price == Decimal("11.00")
+    assert loaded_order.items[0].price == Decimal("10.00")
     assert loaded_order.items[0].exchange_rate.currency is Currency.EUR
     assert loaded_order.tax is not None
     assert loaded_order.tax.id == tax.id
@@ -145,7 +145,7 @@ def test_execute_creates_order(
     assert loaded_cart.status is CartStatus.CONVERTED
 
     payment = payment_repo.get_by_order_id(recorded_order.id)
-    assert payment.amount == Decimal("12.10")
+    assert payment.amount == Decimal("11.00")
     assert payment.currency is Currency.EUR
 
     attempts = payment_attempt_repo.get_by_payment_id(payment.id)
@@ -195,11 +195,11 @@ def test_execute_without_discount_and_tax(
     recorded_order, amount, currency = payment_gateway.calls[0]
     assert recorded_order.discount is None
     assert recorded_order.tax is None
-    assert amount == Decimal("11.00")
+    assert amount == Decimal("10.00")
     assert currency is Currency.EUR
 
     payment = payment_repo.get_by_order_id(recorded_order.id)
-    assert payment.amount == Decimal("11.00")
+    assert payment.amount == Decimal("10.00")
 
 
 @pytest.mark.django_db
@@ -604,5 +604,151 @@ def test_execute_provider_not_found(
 
     with pytest.raises(EntityNotFoundError):
         use_case.execute(_build_dto(cart_id, 9999))
+
+    assert payment_gateway.calls == []
+
+
+@pytest.mark.django_db
+def test_execute_converts_items_in_different_currencies(
+    cart_repo,
+    cart_item_repo,
+    product_repo,
+    product_price_repo,
+    exchange_rate_repo,
+    order_repo,
+    order_item_repo,
+    discount_repo,
+    tax_repo,
+    payment_repo,
+    payment_attempt_repo,
+    payment_provider_repo,
+    payment_gateway,
+    payment_provider,
+):
+    rub_product = Product(name="Rub Product", is_active=True)
+    product_repo.save(rub_product)
+    rub_price = ProductPrice(
+        currency=Currency.RUB,
+        price=Decimal("100.00"),
+        product=rub_product,
+    )
+    product_price_repo.save(rub_price)
+
+    usd_product = Product(name="Usd Product", is_active=True)
+    product_repo.save(usd_product)
+    usd_price = ProductPrice(
+        currency=Currency.USD,
+        price=Decimal("10.00"),
+        product=usd_product,
+    )
+    product_price_repo.save(usd_price)
+
+    cart = Cart()
+    cart_repo.save(cart)
+    cart_item_repo.save(
+        CartItem(product=rub_product, product_price=rub_price, cart=cart)
+    )
+    cart_item_repo.save(
+        CartItem(product=usd_product, product_price=usd_price, cart=cart)
+    )
+
+    rub_rate = ExchangeRate(
+        base_currency=Currency.EUR,
+        currency=Currency.RUB,
+        coef=Decimal("0.01"),
+    )
+    exchange_rate_repo.save(rub_rate)
+    usd_rate = ExchangeRate(
+        base_currency=Currency.EUR,
+        currency=Currency.USD,
+        coef=Decimal("0.85"),
+    )
+    exchange_rate_repo.save(usd_rate)
+
+    assert cart.id is not None
+    assert payment_provider.id is not None
+    use_case = _build_use_case(
+        cart_repo,
+        order_repo,
+        order_item_repo,
+        exchange_rate_repo,
+        discount_repo,
+        tax_repo,
+        payment_repo,
+        payment_attempt_repo,
+        payment_provider_repo,
+        payment_gateway,
+    )
+
+    result = use_case.execute(_build_dto(cart.id, payment_provider.id))
+
+    assert result == CLIENT_SECRET
+    recorded_order, amount, currency = payment_gateway.calls[0]
+    assert currency is Currency.EUR
+    assert amount == Decimal("9.50")
+    assert len(recorded_order.items) == 2
+    prices_by_currency = {
+        item.product_price.currency: item.price for item in recorded_order.items
+    }
+    assert prices_by_currency[Currency.RUB] == Decimal("1.00")
+    assert prices_by_currency[Currency.USD] == Decimal("8.50")
+
+
+@pytest.mark.django_db
+def test_execute_missing_exchange_rate_for_item_raises(
+    cart_repo,
+    cart_item_repo,
+    product_repo,
+    product_price_repo,
+    exchange_rate_repo,
+    order_repo,
+    order_item_repo,
+    discount_repo,
+    tax_repo,
+    payment_repo,
+    payment_attempt_repo,
+    payment_provider_repo,
+    payment_gateway,
+    payment_provider,
+):
+    rub_product = Product(name="Rub Only Product", is_active=True)
+    product_repo.save(rub_product)
+    rub_price = ProductPrice(
+        currency=Currency.RUB,
+        price=Decimal("100.00"),
+        product=rub_product,
+    )
+    product_price_repo.save(rub_price)
+
+    cart = Cart()
+    cart_repo.save(cart)
+    cart_item_repo.save(
+        CartItem(product=rub_product, product_price=rub_price, cart=cart)
+    )
+
+    self_rate = ExchangeRate(
+        base_currency=Currency.EUR,
+        currency=Currency.EUR,
+        coef=Decimal("1"),
+    )
+    exchange_rate_repo.save(self_rate)
+
+    assert cart.id is not None
+    assert payment_provider.id is not None
+    use_case = _build_use_case(
+        cart_repo,
+        order_repo,
+        order_item_repo,
+        exchange_rate_repo,
+        discount_repo,
+        tax_repo,
+        payment_repo,
+        payment_attempt_repo,
+        payment_provider_repo,
+        payment_gateway,
+    )
+
+    with pytest.raises(EntityNotFoundError):
+        use_case.execute(_build_dto(cart.id, payment_provider.id))
 
     assert payment_gateway.calls == []

@@ -13,6 +13,7 @@ from payments.domain.entities.payment_attempts import (
 from payments.domain.exceptions import (
     CartEmptyError,
     CartNotActiveError,
+    EntityNotFoundError,
     ProductNotActiveError,
     ProductPriceNotActiveError,
 )
@@ -63,11 +64,11 @@ class CheckoutUseCase:
             cart = self.carts.get_by_id_for_update(data.cart_id)
             self._validate(cart)
 
-            exchange_rate = self.exchange_rates.get_active_by_code(currency)
+            exchange_rates = self.exchange_rates.get_all_active_by_code(currency)
             order = self._create_order(
                 cart,
                 currency,
-                exchange_rate,
+                exchange_rates,
             )
 
             if data.tax_id is not None:
@@ -138,10 +139,23 @@ class CheckoutUseCase:
 
     @staticmethod
     def _create_order(
-        cart: Cart, currency: Currency, exchange_rate: ExchangeRate
+        cart: Cart,
+        currency: Currency,
+        exchange_rates: list[ExchangeRate],
     ) -> Order:
         order = Order(currency=currency, cart=cart)
         for cart_item in cart.items:
+            exchange_rate = next(
+                (
+                    rate
+                    for rate in exchange_rates
+                    if rate.base_currency == currency
+                    and rate.currency == cart_item.product_price.currency
+                ),
+                None,
+            )
+            if exchange_rate is None:
+                raise EntityNotFoundError()
             price = (cart_item.product_price.price * exchange_rate.coef).quantize(
                 Decimal("0.01")
             )

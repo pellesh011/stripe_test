@@ -22,6 +22,7 @@ from payments.domain.exceptions import (
     DiscountNotActiveError,
     DiscountNotFoundError,
     EntityNotFoundError,
+    PaymentAmountTooSmallError,
     ProductNotActiveError,
     ProductPriceNotActiveError,
 )
@@ -66,6 +67,7 @@ _CHECKOUT_ERRORS: dict[type[Exception], tuple[int, str]] = {
     DiscountNotActiveError: (400, "Discount is not active"),
     ProductNotActiveError: (400, "Product is not active"),
     ProductPriceNotActiveError: (400, "Product price is not active"),
+    PaymentAmountTooSmallError: (400, "Amount is too small"),
 }
 
 

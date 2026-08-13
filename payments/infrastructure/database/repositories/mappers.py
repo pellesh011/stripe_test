@@ -44,6 +44,7 @@ def exchange_rate_to_entity(model: ExchangeRateModel) -> ExchangeRate:
         currency=Currency(model.currency),
         coef=model.coef,
         is_active=model.is_active,
+        base_currency=Currency(model.base_currency),
         id=model.id,
     )
 
