@@ -67,7 +67,7 @@ class ProductPriceRepositoryImpl(ProductPriceRepository):
                 price=product_price.price,
                 is_active=product_price.is_active,
             )
-            product_price.id = model.id
+            product_price.set_id(model.id)
         else:
             ProductPriceModel.objects.filter(id=product_price.id).update(
                 is_active=product_price.is_active,
