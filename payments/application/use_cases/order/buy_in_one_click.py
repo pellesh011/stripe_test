@@ -1,6 +1,6 @@
 from payments.application.dto.buy_in_one_click import BuyInOneClickDTO
 from payments.application.dto.cart import AddToCartDTO
-from payments.application.dto.checkout import CheckoutDTO
+from payments.application.dto.checkout import CheckoutDTO, CheckoutResult
 from payments.application.use_cases.cart.add_to_cart import AddToCartUseCase
 from payments.application.use_cases.order.checkout import CheckoutUseCase
 from payments.domain.repositories.cart import CartRepository
@@ -59,7 +59,7 @@ class BuyInOneClickUseCase:
             payment_gateway=payment_gateway,
         )
 
-    def execute(self, data: BuyInOneClickDTO) -> str:
+    def execute(self, data: BuyInOneClickDTO) -> CheckoutResult:
         provider = self._payment_providers.get_default()
         assert provider.id is not None
 

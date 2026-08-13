@@ -1,21 +1,17 @@
 import json
 
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from payments.application.dto.buy_in_one_click import BuyInOneClickDTO
-from payments.application.dto.checkout import CheckoutDTO
-from payments.application.dto.product import GetProductListDTO, PaginationDTO
+from payments.application.dto.checkout import CheckoutDTO, CheckoutResult
 from payments.application.use_cases.order.buy_in_one_click import (
     BuyInOneClickUseCase,
 )
 from payments.application.use_cases.order.checkout import CheckoutUseCase
-from payments.application.use_cases.product.get_product_list import (
-    GetProductListUseCase,
-)
 from payments.domain.entities.exchange_rate import Currency
-from payments.domain.entities.product import Product
 from payments.domain.exceptions import (
     CartEmptyError,
     CartNotActiveError,
@@ -71,69 +67,13 @@ _CHECKOUT_ERRORS: dict[type[Exception], tuple[int, str]] = {
 }
 
 
-def _serialize_product(product: Product) -> dict:
+def _serialize_checkout_result(result: CheckoutResult) -> dict:
     return {
-        "id": product.id,
-        "name": product.name,
-        "is_active": product.is_active,
-        "prices": [
-            {
-                "id": price.id,
-                "currency": price.currency.value,
-                "price": str(price.price),
-                "is_active": price.is_active,
-            }
-            for price in product.prices
-        ],
+        "client_secret": result.client_secret,
+        "order_id": result.order_id,
+        "amount": str(result.amount),
+        "currency": result.currency.value,
     }
-
-
-def _parse_pagination(data, parameter: str, default: int) -> int | None:
-    raw = data.get(parameter)
-    if raw is None or raw == "":
-        return default
-    try:
-        value = int(raw)
-    except ValueError:
-        return None
-    if value < 0:
-        return None
-    return value
-
-
-def get_product_list(request) -> JsonResponse:
-    limit = _parse_pagination(request.GET, "limit", 10)
-    offset = _parse_pagination(request.GET, "offset", 0)
-    if limit is None or offset is None:
-        return JsonResponse(
-            {"error": "limit and offset must be non-negative integers"},
-            status=400,
-        )
-
-    currency = request.GET.get("currency") or None
-    if currency is not None and currency not in {item.value for item in Currency}:
-        return JsonResponse(
-            {
-                "error": "currency must be one of: "
-                + ", ".join(item.value for item in Currency)
-            },
-            status=400,
-        )
-
-    use_case = GetProductListUseCase(
-        products=ProductRepositoryImpl(),
-        product_prices=ProductPriceRepositoryImpl(),
-    )
-    products = use_case.execute(
-        GetProductListDTO(
-            pagination=PaginationDTO(limit=limit, offset=offset),
-            is_active=True,
-            currency=currency,
-        )
-    )
-    return JsonResponse(
-        {"products": [_serialize_product(product) for product in products]}
-    )
 
 
 def _parse_required_id(data, field: str) -> tuple[int | None, str | None]:
@@ -155,7 +95,7 @@ def _parse_optional_int(data, field: str) -> tuple[int | None, str | None]:
 
 
 @csrf_exempt
-def checkout(request) -> JsonResponse:
+async def checkout(request) -> JsonResponse:
     if request.method != "POST":
         return JsonResponse(
             {"error": "method must be POST"},
@@ -223,7 +163,10 @@ def checkout(request) -> JsonResponse:
     )
 
     try:
-        client_secret = use_case.execute(
+        result = await sync_to_async(
+            use_case.execute,
+            thread_sensitive=True,
+        )(
             CheckoutDTO(
                 cart_id=cart_id,
                 currency=currency,
@@ -236,11 +179,11 @@ def checkout(request) -> JsonResponse:
         status, message = _CHECKOUT_ERRORS[type(exc)]
         return JsonResponse({"error": message}, status=status)
 
-    return JsonResponse({"client_secret": client_secret})
+    return JsonResponse(_serialize_checkout_result(result))
 
 
 @csrf_exempt
-def buy_in_one_click(request) -> JsonResponse:
+async def buy_in_one_click(request) -> JsonResponse:
     if request.method != "POST":
         return JsonResponse(
             {"error": "method must be POST"},
@@ -298,7 +241,10 @@ def buy_in_one_click(request) -> JsonResponse:
     )
 
     try:
-        client_secret = use_case.execute(
+        result = await sync_to_async(
+            use_case.execute,
+            thread_sensitive=True,
+        )(
             BuyInOneClickDTO(
                 product_id=product_id,
                 product_price_id=product_price_id,
@@ -309,4 +255,4 @@ def buy_in_one_click(request) -> JsonResponse:
         status, message = _CHECKOUT_ERRORS[type(exc)]
         return JsonResponse({"error": message}, status=status)
 
-    return JsonResponse({"client_secret": client_secret})
+    return JsonResponse(_serialize_checkout_result(result))
