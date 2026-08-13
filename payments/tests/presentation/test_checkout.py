@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 import pytest
 from django.test import Client
@@ -31,7 +32,9 @@ def _payload(cart_id, provider_id, **overrides):
 
 
 @pytest.mark.django_db
+@patch("stripe.PaymentIntent.create")
 def test_checkout_success(
+    mock_create,
     client,
     cart_repo,
     cart,
@@ -41,6 +44,9 @@ def test_checkout_success(
     tax,
     payment_provider,
 ):
+    mock_create.return_value.id = "pi_test_123"
+    mock_create.return_value.client_secret = "cs_test_secret"
+    mock_create.return_value.status = "requires_payment_method"
     response = _post(
         client,
         _payload(
@@ -52,43 +58,23 @@ def test_checkout_success(
     )
 
     assert response.status_code == 200
-    data = response.json()
-    assert data["id"] is not None
-    assert data["currency"] == "eur"
-    assert data["status"] == "created"
-    assert data["subtotal"] == "11.00"
-    assert data["tax_amount"] == "2.20"
-    assert data["discount_amount"] == "1.10"
-    assert data["total"] == "12.10"
-    assert data["tax"] == {"id": tax.id, "name": "VAT", "rate": 20}
-    assert data["discount"] == {
-        "id": discount.id,
-        "name": "Test Discount",
-        "type": "percentage",
-        "value": "10.00",
-    }
-    assert len(data["items"]) == 1
-    assert data["items"][0]["price"] == "11.00"
-    assert data["payment"]["id"] is not None
-    assert data["payment"]["amount"] == "12.10"
-    assert data["payment"]["currency"] == "eur"
-    assert data["payment"]["status"] == "created"
+    assert response.json() == {"client_secret": "cs_test_secret"}
 
     assert cart_repo.get_by_id(cart.id).status is CartStatus.CONVERTED
 
 
 @pytest.mark.django_db
+@patch("stripe.PaymentIntent.create")
 def test_checkout_without_optional_fields(
-    client, cart, cart_item, exchange_rate, payment_provider
+    mock_create, client, cart, cart_item, exchange_rate, payment_provider
 ):
+    mock_create.return_value.id = "pi_test_123"
+    mock_create.return_value.client_secret = "cs_test_secret"
+    mock_create.return_value.status = "requires_payment_method"
     response = _post(client, _payload(cart.id, payment_provider.id))
 
     assert response.status_code == 200
-    data = response.json()
-    assert data["tax"] is None
-    assert data["discount"] is None
-    assert data["total"] == "11.00"
-    assert data["payment"]["amount"] == "11.00"
+    assert response.json() == {"client_secret": "cs_test_secret"}
 
 
 @pytest.mark.django_db

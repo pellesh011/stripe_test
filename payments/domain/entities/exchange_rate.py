@@ -8,6 +8,28 @@ class Currency(Enum):
     USD = "usd"
     RUB = "rub"
     EUR = "eur"
+    JPY = "jpy"
+
+
+class CurrencyMinorUnit:
+    _multipliers = {
+        Currency.USD: 100,
+        Currency.EUR: 100,
+        Currency.RUB: 100,
+        Currency.JPY: 1,
+    }
+
+    @classmethod
+    def get_multiplier(cls, currency: Currency) -> int:
+        return cls._multipliers[currency]
+
+    @classmethod
+    def to_minor_units(
+        cls,
+        amount: Decimal | int | float,
+        currency: Currency,
+    ) -> int:
+        return int(amount * cls.get_multiplier(currency))
 
 
 class ExchangeRate:

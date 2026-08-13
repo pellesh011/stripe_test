@@ -8,6 +8,7 @@ from payments.domain.entities.cart import Cart, CartStatus
 from payments.domain.entities.cart_item import CartItem
 from payments.domain.entities.exchange_rate import Currency
 from payments.domain.entities.order import OrderStatus
+from payments.domain.entities.payment_attempts import PaymentAttemptStatus
 from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
 from payments.domain.exceptions import (
@@ -19,7 +20,15 @@ from payments.domain.exceptions import (
     ProductNotActiveError,
     ProductPriceNotActiveError,
 )
+from payments.infrastructure.database.models.payment_attempt import (
+    PaymentAttemptModel,
+)
 from payments.infrastructure.database.uow import DjangoUnitOfWork
+from payments.tests.application.fakes import (
+    CLIENT_SECRET,
+    PAYMENT_INTENT_ID,
+    FakePaymentGateway,
+)
 
 
 def _build_use_case(
@@ -32,6 +41,7 @@ def _build_use_case(
     payment_repo,
     payment_attempt_repo,
     payment_provider_repo,
+    payment_gateway: FakePaymentGateway,
 ):
     return CheckoutUseCase(
         uow=DjangoUnitOfWork(),
@@ -44,6 +54,7 @@ def _build_use_case(
         payments=payment_repo,
         payment_attempts=payment_attempt_repo,
         payment_providers=payment_provider_repo,
+        payment_gateway=payment_gateway,
     )
 
 
@@ -74,6 +85,7 @@ def test_execute_creates_order(
     payment_repo,
     payment_attempt_repo,
     payment_provider_repo,
+    payment_gateway,
     cart,
     cart_item,
     exchange_rate,
@@ -93,6 +105,7 @@ def test_execute_creates_order(
         payment_repo,
         payment_attempt_repo,
         payment_provider_repo,
+        payment_gateway,
     )
     dto = _build_dto(
         cart.id,
@@ -103,18 +116,23 @@ def test_execute_creates_order(
 
     result = use_case.execute(dto)
 
-    assert result.id is not None
-    assert result.currency is Currency.EUR
-    assert result.status is OrderStatus.CREATED
-    assert len(result.items) == 1
-    assert result.items[0].price == Decimal("11.00")
-    assert result.tax is not None
-    assert result.tax.id == tax.id
-    assert result.discount is not None
-    assert result.discount.id == discount.id
-    assert result.total() == Decimal("12.10")
+    assert result == CLIENT_SECRET
+    assert len(payment_gateway.calls) == 1
 
-    loaded_order = order_repo.get_by_id(result.id)
+    recorded_order, amount, currency = payment_gateway.calls[0]
+    assert recorded_order.id is not None
+    assert recorded_order.currency is Currency.EUR
+    assert recorded_order.status is OrderStatus.CREATED
+    assert len(recorded_order.items) == 1
+    assert recorded_order.items[0].price == Decimal("11.00")
+    assert recorded_order.tax is not None
+    assert recorded_order.tax.id == tax.id
+    assert recorded_order.discount is not None
+    assert recorded_order.discount.id == discount.id
+    assert amount == Decimal("12.10")
+    assert currency is Currency.EUR
+
+    loaded_order = order_repo.get_by_id(recorded_order.id)
     assert len(loaded_order.items) == 1
     assert loaded_order.items[0].price == Decimal("11.00")
     assert loaded_order.items[0].exchange_rate.currency is Currency.EUR
@@ -126,7 +144,7 @@ def test_execute_creates_order(
     loaded_cart = cart_repo.get_by_id(cart.id)
     assert loaded_cart.status is CartStatus.CONVERTED
 
-    payment = payment_repo.get_by_order_id(result.id)
+    payment = payment_repo.get_by_order_id(recorded_order.id)
     assert payment.amount == Decimal("12.10")
     assert payment.currency is Currency.EUR
 
@@ -134,6 +152,8 @@ def test_execute_creates_order(
     assert len(attempts) == 1
     assert attempts[0].id is not None
     assert attempts[0].provider.id == payment_provider.id
+    assert attempts[0].external_id == PAYMENT_INTENT_ID
+    assert attempts[0].status is PaymentAttemptStatus.PROCESSING
 
 
 @pytest.mark.django_db
@@ -147,6 +167,7 @@ def test_execute_without_discount_and_tax(
     payment_repo,
     payment_attempt_repo,
     payment_provider_repo,
+    payment_gateway,
     cart,
     cart_item,
     exchange_rate,
@@ -162,17 +183,68 @@ def test_execute_without_discount_and_tax(
         payment_repo,
         payment_attempt_repo,
         payment_provider_repo,
+        payment_gateway,
     )
     dto = _build_dto(cart.id, payment_provider.id)
 
     result = use_case.execute(dto)
 
-    assert result.discount is None
-    assert result.tax is None
-    assert result.total() == Decimal("11.00")
+    assert result == CLIENT_SECRET
+    assert len(payment_gateway.calls) == 1
 
-    payment = payment_repo.get_by_order_id(result.id)
+    recorded_order, amount, currency = payment_gateway.calls[0]
+    assert recorded_order.discount is None
+    assert recorded_order.tax is None
+    assert amount == Decimal("11.00")
+    assert currency is Currency.EUR
+
+    payment = payment_repo.get_by_order_id(recorded_order.id)
     assert payment.amount == Decimal("11.00")
+
+
+@pytest.mark.django_db
+def test_execute_gateway_failure_keeps_attempt_created(
+    cart_repo,
+    order_repo,
+    order_item_repo,
+    exchange_rate_repo,
+    discount_repo,
+    tax_repo,
+    payment_repo,
+    payment_attempt_repo,
+    payment_provider_repo,
+    payment_gateway,
+    cart,
+    cart_item,
+    exchange_rate,
+    payment_provider,
+):
+    def failing_create_payment(*args, **kwargs):
+        raise RuntimeError("provider unavailable")
+
+    payment_gateway.create_payment = failing_create_payment
+    use_case = _build_use_case(
+        cart_repo,
+        order_repo,
+        order_item_repo,
+        exchange_rate_repo,
+        discount_repo,
+        tax_repo,
+        payment_repo,
+        payment_attempt_repo,
+        payment_provider_repo,
+        payment_gateway,
+    )
+
+    with pytest.raises(RuntimeError):
+        use_case.execute(_build_dto(cart.id, payment_provider.id))
+
+    attempt = PaymentAttemptModel.objects.filter(
+        payment__order__cart_id=cart.id
+    ).values("external_id", "status")
+    assert len(attempt) == 1
+    assert attempt[0]["external_id"] is None
+    assert attempt[0]["status"] == PaymentAttemptStatus.CREATED.value
 
 
 @pytest.mark.django_db
@@ -186,6 +258,7 @@ def test_execute_cart_not_found(
     payment_repo,
     payment_attempt_repo,
     payment_provider_repo,
+    payment_gateway,
 ):
     use_case = _build_use_case(
         cart_repo,
@@ -197,10 +270,13 @@ def test_execute_cart_not_found(
         payment_repo,
         payment_attempt_repo,
         payment_provider_repo,
+        payment_gateway,
     )
 
     with pytest.raises(EntityNotFoundError):
         use_case.execute(_build_dto(9999, 9999))
+
+    assert payment_gateway.calls == []
 
 
 @pytest.mark.django_db
@@ -214,6 +290,7 @@ def test_execute_cart_not_active(
     payment_repo,
     payment_attempt_repo,
     payment_provider_repo,
+    payment_gateway,
     payment_provider,
 ):
     checkout_cart = Cart()
@@ -232,10 +309,13 @@ def test_execute_cart_not_active(
         payment_repo,
         payment_attempt_repo,
         payment_provider_repo,
+        payment_gateway,
     )
 
     with pytest.raises(CartNotActiveError):
         use_case.execute(_build_dto(checkout_cart.id, payment_provider.id))
+
+    assert payment_gateway.calls == []
 
 
 @pytest.mark.django_db
@@ -249,6 +329,7 @@ def test_execute_empty_cart(
     payment_repo,
     payment_attempt_repo,
     payment_provider_repo,
+    payment_gateway,
     cart,
     payment_provider,
 ):
@@ -262,10 +343,13 @@ def test_execute_empty_cart(
         payment_repo,
         payment_attempt_repo,
         payment_provider_repo,
+        payment_gateway,
     )
 
     with pytest.raises(CartEmptyError):
         use_case.execute(_build_dto(cart.id, payment_provider.id))
+
+    assert payment_gateway.calls == []
 
 
 @pytest.mark.django_db
@@ -282,6 +366,7 @@ def test_execute_inactive_product(
     payment_repo,
     payment_attempt_repo,
     payment_provider_repo,
+    payment_gateway,
     payment_provider,
 ):
     inactive = Product(name="Inactive Product", is_active=False)
@@ -309,10 +394,13 @@ def test_execute_inactive_product(
         payment_repo,
         payment_attempt_repo,
         payment_provider_repo,
+        payment_gateway,
     )
 
     with pytest.raises(ProductNotActiveError):
         use_case.execute(_build_dto(cart.id, payment_provider.id))
+
+    assert payment_gateway.calls == []
 
 
 @pytest.mark.django_db
@@ -329,6 +417,7 @@ def test_execute_inactive_product_price(
     payment_repo,
     payment_attempt_repo,
     payment_provider_repo,
+    payment_gateway,
     payment_provider,
 ):
     product = Product(name="Active Product", is_active=True)
@@ -357,10 +446,13 @@ def test_execute_inactive_product_price(
         payment_repo,
         payment_attempt_repo,
         payment_provider_repo,
+        payment_gateway,
     )
 
     with pytest.raises(ProductPriceNotActiveError):
         use_case.execute(_build_dto(cart.id, payment_provider.id))
+
+    assert payment_gateway.calls == []
 
 
 @pytest.mark.django_db
@@ -374,6 +466,7 @@ def test_execute_discount_not_found(
     payment_repo,
     payment_attempt_repo,
     payment_provider_repo,
+    payment_gateway,
     cart_item,
     exchange_rate,
     payment_provider,
@@ -390,10 +483,13 @@ def test_execute_discount_not_found(
         payment_repo,
         payment_attempt_repo,
         payment_provider_repo,
+        payment_gateway,
     )
 
     with pytest.raises(DiscountNotFoundError):
         use_case.execute(_build_dto(cart_id, payment_provider.id, discount="missing"))
+
+    assert payment_gateway.calls == []
 
 
 @pytest.mark.django_db
@@ -407,6 +503,7 @@ def test_execute_inactive_discount(
     payment_repo,
     payment_attempt_repo,
     payment_provider_repo,
+    payment_gateway,
     cart_item,
     exchange_rate,
     inactive_discount,
@@ -424,6 +521,7 @@ def test_execute_inactive_discount(
         payment_repo,
         payment_attempt_repo,
         payment_provider_repo,
+        payment_gateway,
     )
 
     with pytest.raises(DiscountNotActiveError):
@@ -434,6 +532,8 @@ def test_execute_inactive_discount(
                 discount=inactive_discount.name,
             )
         )
+
+    assert payment_gateway.calls == []
 
 
 @pytest.mark.django_db
@@ -447,6 +547,7 @@ def test_execute_exchange_rate_not_found(
     payment_repo,
     payment_attempt_repo,
     payment_provider_repo,
+    payment_gateway,
     cart_item,
     payment_provider,
 ):
@@ -462,10 +563,13 @@ def test_execute_exchange_rate_not_found(
         payment_repo,
         payment_attempt_repo,
         payment_provider_repo,
+        payment_gateway,
     )
 
     with pytest.raises(EntityNotFoundError):
         use_case.execute(_build_dto(cart_id, payment_provider.id, currency="rub"))
+
+    assert payment_gateway.calls == []
 
 
 @pytest.mark.django_db
@@ -479,6 +583,7 @@ def test_execute_provider_not_found(
     payment_repo,
     payment_attempt_repo,
     payment_provider_repo,
+    payment_gateway,
     cart_item,
     exchange_rate,
 ):
@@ -494,7 +599,10 @@ def test_execute_provider_not_found(
         payment_repo,
         payment_attempt_repo,
         payment_provider_repo,
+        payment_gateway,
     )
 
     with pytest.raises(EntityNotFoundError):
         use_case.execute(_build_dto(cart_id, 9999))
+
+    assert payment_gateway.calls == []
