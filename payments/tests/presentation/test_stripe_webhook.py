@@ -245,12 +245,10 @@ def test_webhook_picks_active_attempt_among_multiple(
         is PaymentAttemptStatus.SUCCEEDED
     )
     assert (
-        payment_attempt_repo.get_by_id(failed.id).status
-        is PaymentAttemptStatus.FAILED
+        payment_attempt_repo.get_by_id(failed.id).status is PaymentAttemptStatus.FAILED
     )
     assert (
-        payment_repo.get_by_id(payment_attempt.payment.id).status
-        is PaymentStatus.PAID
+        payment_repo.get_by_id(payment_attempt.payment.id).status is PaymentStatus.PAID
     )
 
 
@@ -350,8 +348,7 @@ def test_webhook_creates_new_attempt_and_succeeds_after_all_failed(
     assert attempts[1].status is PaymentAttemptStatus.SUCCEEDED
     assert attempts[1].external_id == intent_id
     assert (
-        payment_repo.get_by_id(payment_attempt.payment.id).status
-        is PaymentStatus.PAID
+        payment_repo.get_by_id(payment_attempt.payment.id).status is PaymentStatus.PAID
     )
     assert (
         order_repo.get_by_id(payment_attempt.payment.order.id).status
