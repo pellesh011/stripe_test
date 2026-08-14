@@ -38,7 +38,7 @@ function formatDate(value) {
   });
 }
 
-export default function OrdersPage() {
+export default function OrdersPage({ onPay }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -144,6 +144,16 @@ export default function OrdersPage() {
                 </span>
               </div>
             </div>
+            {(order.status === "created" || order.status === "pending_payment") &&
+              order.payment_intent && (
+                <button
+                  type="button"
+                  className="order__pay"
+                  onClick={() => onPay(order)}
+                >
+                  Оплатить
+                </button>
+              )}
           </div>
         ))}
       </div>

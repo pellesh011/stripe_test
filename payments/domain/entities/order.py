@@ -31,6 +31,8 @@ class Order:
     discount: Discount | None
     tax: Tax | None
     created_at: datetime | None
+    payment_intent: str | None = None
+    client_secret: str | None = None
 
     def __init__(
         self,
@@ -49,6 +51,8 @@ class Order:
         self.tax = tax
         self.id = id
         self.created_at = created_at
+        self.payment_intent = None
+        self.client_secret = None
 
     def add(self, item: OrderItem):
         self.items.append(item)

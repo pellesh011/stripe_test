@@ -13,6 +13,9 @@ class PaymentAttemptRepository(ABC):
     ) -> list[PaymentAttempt]: ...
 
     @abstractmethod
+    def get_by_order_id(self, order_id: int) -> list[PaymentAttempt]: ...
+
+    @abstractmethod
     def get_by_id_for_update(self, id: int) -> PaymentAttempt: ...
 
     @abstractmethod
