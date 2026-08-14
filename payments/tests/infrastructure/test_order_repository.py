@@ -1,5 +1,6 @@
 import pytest
 
+from payments.domain.entities.cart import Cart
 from payments.domain.entities.exchange_rate import Currency
 from payments.domain.entities.order import Order, OrderStatus
 from payments.domain.exceptions import EntityNotFoundError
@@ -75,3 +76,21 @@ def test_get_by_id_loads_items(order_repo, order, order_item):
     assert len(loaded.items) == 1
     assert loaded.items[0].id == order_item.id
     assert loaded.items[0].product.name == order_item.product.name
+
+
+@pytest.mark.django_db
+def test_get_all_returns_empty(order_repo):
+    assert order_repo.get_all() == []
+
+
+@pytest.mark.django_db
+def test_get_all_returns_orders(order_repo, order, cart_repo):
+    second_cart = Cart()
+    cart_repo.save(second_cart)
+    assert second_cart.id is not None
+    second = Order(currency=Currency.EUR, cart=second_cart)
+    order_repo.save(second)
+
+    result = order_repo.get_all()
+
+    assert {item.id for item in result} == {order.id, second.id}

@@ -19,6 +19,14 @@ class OrderRepositoryImpl(OrderRepository):
             raise EntityNotFoundError() from None
         return build_order(model)
 
+    def get_all(self) -> list[Order]:
+        models = OrderModel.objects.select_related(
+            "cart",
+            "discount",
+            "tax",
+        ).order_by("-created_at")
+        return [build_order(model) for model in models]
+
     def save(self, order: Order) -> None:
         assert order.cart.id is not None
 

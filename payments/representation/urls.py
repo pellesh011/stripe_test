@@ -23,7 +23,9 @@ from payments.representation import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/products/", views.get_product_list, name="product-list"),
+    path("api/cart/", views.get_or_create_cart, name="cart-get-or-create"),
     path("api/cart/checkout/", views.checkout, name="cart-checkout"),
+    path("api/orders/", views.get_orders, name="order-list"),
     path("api/buy-in-one-click/", views.buy_in_one_click, name="buy-in-one-click"),
     path("webhook/stripe/", views.stripe_webhook, name="stripe-webhook"),
 ]
