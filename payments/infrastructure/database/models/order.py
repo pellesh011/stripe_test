@@ -46,6 +46,9 @@ class OrderModel(models.Model):
         auto_now_add=True,
     )
 
+    def __str__(self):
+        return f"#{self.pk}: {self.status} ({self.currency})"
+
 
 class OrderItemModel(models.Model):
     order = models.ForeignKey(
@@ -76,3 +79,6 @@ class OrderItemModel(models.Model):
         max_digits=12,
         decimal_places=2,
     )
+
+    def __str__(self):
+        return f"#{self.pk}: {self.product.name} x {self.price} {self.order.currency}"
