@@ -10,6 +10,12 @@ class PaymentAttemptModel(models.Model):
         blank=True,
     )
 
+    client_secret = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+    )
+
     provider = models.ForeignKey(
         "PaymentProviderModel",
         on_delete=models.PROTECT,

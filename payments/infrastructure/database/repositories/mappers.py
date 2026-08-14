@@ -146,6 +146,7 @@ def payment_attempt_to_entity(
     return PaymentAttempt.restore(
         id=model.id,
         external_id=model.external_id,
+        client_secret=model.client_secret,
         provider=provider,
         payment=payment,
         status=PaymentAttemptStatus(model.status),

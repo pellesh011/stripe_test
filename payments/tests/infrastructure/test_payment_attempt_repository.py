@@ -74,6 +74,56 @@ def test_get_by_payment_id_pagination_limit_and_offset(
 
 
 @pytest.mark.django_db
+def test_get_by_order_id(payment_attempt_repo, payment_attempt, payment):
+    assert payment.order.id is not None
+    attempts = payment_attempt_repo.get_by_order_id(payment.order.id)
+
+    assert len(attempts) == 1
+    assert attempts[0].id == payment_attempt.id
+
+
+@pytest.mark.django_db
+def test_get_by_order_id_returns_empty(payment_attempt_repo):
+    attempts = payment_attempt_repo.get_by_order_id(9999)
+
+    assert attempts == []
+
+
+@pytest.mark.django_db
+def test_get_by_order_id_orders_by_latest_first(
+    payment_attempt_repo,
+    payment,
+    payment_provider,
+):
+    assert payment.order.id is not None
+    first = PaymentAttempt(provider=payment_provider, payment=payment)
+    payment_attempt_repo.save(first)
+    second = PaymentAttempt(provider=payment_provider, payment=payment)
+    payment_attempt_repo.save(second)
+
+    attempts = payment_attempt_repo.get_by_order_id(payment.order.id)
+
+    assert [item.id for item in attempts] == [second.id, first.id]
+
+
+@pytest.mark.django_db
+def test_save_persists_external_id_and_client_secret(
+    payment_attempt_repo,
+    payment,
+    payment_provider,
+):
+    entity = PaymentAttempt(provider=payment_provider, payment=payment)
+    entity.external_id = "pi_test_123"
+    entity.client_secret = "pi_test_123_secret_secret"
+
+    payment_attempt_repo.save(entity)
+
+    loaded = payment_attempt_repo.get_by_id(entity.id)
+    assert loaded.external_id == "pi_test_123"
+    assert loaded.client_secret == "pi_test_123_secret_secret"
+
+
+@pytest.mark.django_db
 def test_save_persists_status_and_completed_at(
     payment_attempt_repo,
     payment_attempt,

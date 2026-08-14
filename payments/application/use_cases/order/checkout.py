@@ -118,6 +118,7 @@ class CheckoutUseCase:
             )
 
             payment_attempt.external_id = payment_intent.id
+            payment_attempt.client_secret = payment_intent.client_secret
             payment_attempt.status = PaymentAttemptStatus.PROCESSING
 
             self.payment_attempts.save(payment_attempt)

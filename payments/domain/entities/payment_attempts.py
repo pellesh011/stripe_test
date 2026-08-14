@@ -19,6 +19,7 @@ class PaymentAttemptStatus(Enum):
 class PaymentAttempt:
     id: int | None
     external_id: str | None
+    client_secret: str | None
     provider: PaymentProvider
     payment: Payment
     status: PaymentAttemptStatus
@@ -34,6 +35,7 @@ class PaymentAttempt:
     ):
         self.id = None
         self.external_id = None
+        self.client_secret = None
         self.provider = provider
         self.payment = payment
         self.status = status
@@ -50,6 +52,7 @@ class PaymentAttempt:
         status: PaymentAttemptStatus,
         created_at: datetime,
         completed_at: datetime | None,
+        client_secret: str | None = None,
     ) -> PaymentAttempt:
         attempt = cls(
             provider=provider,
@@ -59,6 +62,7 @@ class PaymentAttempt:
 
         attempt.id = id
         attempt.external_id = external_id
+        attempt.client_secret = client_secret
         attempt.created_at = created_at
         attempt.completed_at = completed_at
 
