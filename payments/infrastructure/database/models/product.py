@@ -9,6 +9,9 @@ class ProductModel(models.Model):
         default=True,
     )
 
+    def __str__(self):
+        return f"#{self.pk}: {self.name}"
+
 
 class ProductPriceModel(models.Model):
     currency = models.CharField(
@@ -27,6 +30,9 @@ class ProductPriceModel(models.Model):
     product = models.ForeignKey(
         ProductModel, on_delete=models.PROTECT, related_name="prices"
     )
+
+    def __str__(self):
+        return f"#{self.pk}: {self.price} {self.currency}"
 
     class Meta:
         constraints = [

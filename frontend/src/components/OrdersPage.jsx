@@ -27,6 +27,8 @@ function formatTaxLabel(order) {
   return `${order.tax.name} · ${order.tax.rate}%`;
 }
 
+const PER_PAGE = 10;
+
 function formatDate(value) {
   if (!value) return "—";
   return new Date(value).toLocaleString("ru-RU", {
@@ -38,17 +40,28 @@ function formatDate(value) {
   });
 }
 
-export default function OrdersPage({ onPay }) {
+export default function OrdersPage({ onPay, onBackToProducts }) {
   const [orders, setOrders] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    getOrders()
+    setLoading(true);
+    setError(null);
+
+    getOrders({
+      limit: PER_PAGE,
+      offset: (page - 1) * PER_PAGE,
+    })
       .then((result) => {
-        if (!cancelled) setOrders(result);
+        if (!cancelled) {
+          setOrders(result.orders);
+          setTotal(result.total);
+        }
       })
       .catch((err) => {
         if (!cancelled) setError(err.message);
@@ -60,7 +73,7 @@ export default function OrdersPage({ onPay }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [page]);
 
   if (loading) {
     return <p className="app__status">Загрузка…</p>;
@@ -70,15 +83,17 @@ export default function OrdersPage({ onPay }) {
     return <p className="app__status app__status--error">Ошибка: {error}</p>;
   }
 
-  if (orders.length === 0) {
-    return <p className="app__status">Заказов пока нет</p>;
-  }
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
     <div className="page">
       <h2 className="page__title">Заказы</h2>
-      <div className="orders">
-        {orders.map((order) => (
+      {total === 0 ? (
+        <p className="app__status">Заказов пока нет</p>
+      ) : (
+        <>
+          <div className="orders">
+            {orders.map((order) => (
           <div className="order" key={order.id}>
             <div className="order__header">
               <div className="order__title">
@@ -156,6 +171,34 @@ export default function OrdersPage({ onPay }) {
               )}
           </div>
         ))}
+      </div>
+          <div className="pagination">
+            <button
+              type="button"
+              className="button"
+              disabled={page <= 1}
+              onClick={() => setPage((current) => current - 1)}
+            >
+              ← Назад
+            </button>
+            <span className="pagination__info">
+              Страница {page} из {totalPages}
+            </span>
+            <button
+              type="button"
+              className="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage((current) => current + 1)}
+            >
+              Вперёд →
+            </button>
+          </div>
+        </>
+      )}
+      <div className="page__actions">
+        <button type="button" className="button" onClick={onBackToProducts}>
+          К товарам
+        </button>
       </div>
     </div>
   );

@@ -11,6 +11,9 @@ class ExchangeRateModel(models.Model):
     coef = models.DecimalField(max_digits=10, decimal_places=2)
     is_active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return f"#{self.pk}: {self.base_currency}→{self.currency} = {self.coef}"
+
     class Meta:
         constraints = [
             models.UniqueConstraint(

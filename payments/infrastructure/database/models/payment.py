@@ -39,3 +39,6 @@ class PaymentModel(models.Model):
         choices=PaymentStatusChoices,
         default=PaymentStatusChoices.CREATED,
     )
+
+    def __str__(self):
+        return f"#{self.pk}: {self.amount} {self.currency} ({self.status})"

@@ -94,3 +94,33 @@ def test_get_all_returns_orders(order_repo, order, cart_repo):
     result = order_repo.get_all()
 
     assert {item.id for item in result} == {order.id, second.id}
+
+
+@pytest.mark.django_db
+def test_get_all_pagination_limit_and_offset(order_repo, cart_repo, order):
+    assert order.id is not None
+    for _ in range(3):
+        cart = Cart()
+        cart_repo.save(cart)
+        entity = Order(currency=Currency.EUR, cart=cart)
+        order_repo.save(entity)
+
+    result = order_repo.get_all(limit=2, offset=2)
+
+    assert len(result) == 2
+
+
+@pytest.mark.django_db
+def test_count_returns_zero(order_repo):
+    assert order_repo.count() == 0
+
+
+@pytest.mark.django_db
+def test_count_returns_total(order_repo, cart_repo, order):
+    assert order.id is not None
+    cart = Cart()
+    cart_repo.save(cart)
+    entity = Order(currency=Currency.EUR, cart=cart)
+    order_repo.save(entity)
+
+    assert order_repo.count() == 2

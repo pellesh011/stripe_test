@@ -18,6 +18,9 @@ class CartModel(models.Model):
         auto_now_add=True,
     )
 
+    def __str__(self):
+        return f"#{self.pk}: {self.status}"
+
 
 class CartItemModel(models.Model):
     cart = models.ForeignKey(
@@ -35,3 +38,7 @@ class CartItemModel(models.Model):
         on_delete=models.PROTECT,
         related_name="cart_items",
     )
+
+    def __str__(self):
+        price = f"{self.product_price.price} {self.product_price.currency}"
+        return f"#{self.pk}: {self.product.name} x {price}"
