@@ -37,6 +37,7 @@ def test_buy_in_one_click_success(
     product,
     product_price,
     exchange_rate,
+    tax,
     payment_provider,
 ):
     mock_create.return_value.id = "pi_test_123"
@@ -51,7 +52,7 @@ def test_buy_in_one_click_success(
     data = response.json()
     assert data["client_secret"] == "cs_test_secret"
     assert isinstance(data["order_id"], int)
-    assert data["amount"] == "10.00"
+    assert data["amount"] == "12.00"
     assert data["currency"] == "eur"
 
 
@@ -119,3 +120,70 @@ def test_buy_in_one_click_no_provider_returns_404(client, product, product_price
 
     assert response.status_code == 404
     assert response.json() == {"error": "Entity not found"}
+
+
+@pytest.mark.django_db
+@patch("stripe.PaymentIntent.create")
+def test_buy_in_one_click_with_discount(
+    mock_create,
+    client,
+    product,
+    product_price,
+    exchange_rate,
+    discount,
+    tax,
+    payment_provider,
+):
+    mock_create.return_value.id = "pi_test_123"
+    mock_create.return_value.client_secret = "cs_test_secret"
+    mock_create.return_value.status = "requires_payment_method"
+    assert product.id is not None
+    assert product_price.id is not None
+
+    response = _post(
+        client,
+        _payload(product.id, product_price.id, discount=discount.name),
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["client_secret"] == "cs_test_secret"
+    assert data["amount"] == "10.80"
+    assert data["currency"] == "eur"
+
+
+@pytest.mark.django_db
+def test_buy_in_one_click_discount_not_found_returns_404(
+    client,
+    product,
+    product_price,
+    exchange_rate,
+    tax,
+    payment_provider,
+):
+    assert product.id is not None
+    assert product_price.id is not None
+    response = _post(
+        client,
+        _payload(product.id, product_price.id, discount="missing"),
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"error": "Discount not found"}
+
+
+@pytest.mark.django_db
+def test_buy_in_one_click_invalid_discount_returns_400(
+    client,
+    product,
+    product_price,
+):
+    assert product.id is not None
+    assert product_price.id is not None
+    response = _post(
+        client,
+        _payload(product.id, product_price.id, discount=123),
+    )
+
+    assert response.status_code == 400
+    assert "discount" in response.json()["error"]

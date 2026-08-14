@@ -1,6 +1,7 @@
 import logging
 
 from payments.application.dto.payment_webhook import PaymentWebhookDTO
+from payments.domain.entities.cart import CartStatus
 from payments.domain.entities.order import OrderStatus
 from payments.domain.entities.payment import Payment, PaymentStatus
 from payments.domain.entities.payment_attempts import (
@@ -8,6 +9,7 @@ from payments.domain.entities.payment_attempts import (
     PaymentAttemptStatus,
 )
 from payments.domain.exceptions import EntityNotFoundError
+from payments.domain.repositories.cart import CartRepository
 from payments.domain.repositories.order import OrderRepository
 from payments.domain.repositories.payment import PaymentRepository
 from payments.domain.repositories.payment_attempt import PaymentAttemptRepository
@@ -28,12 +30,14 @@ class ProcessPaymentWebhookUseCase:
     def __init__(
         self,
         uow: UnitOfWork,
+        carts: CartRepository,
         payment_attempts: PaymentAttemptRepository,
         payments: PaymentRepository,
         orders: OrderRepository,
     ):
         self.uow = uow
         self.payment_attempts = payment_attempts
+        self.carts = carts
         self.payments = payments
         self.orders = orders
 
@@ -104,6 +108,9 @@ class ProcessPaymentWebhookUseCase:
             self.payment_attempts.save(attempt)
             self.payments.save(payment)
             self.orders.save(order)
+            cart = order.cart
+            cart.status = CartStatus.CONVERTED
+            self.carts.save(cart)
 
         logger.info(
             "Processed Stripe webhook: event_id=%s event_type=%s intent_id=%s",

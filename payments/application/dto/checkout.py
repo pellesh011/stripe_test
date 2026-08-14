@@ -8,9 +8,8 @@ from payments.domain.entities.exchange_rate import Currency
 class CheckoutDTO:
     cart_id: int
     currency: str
-    provider_id: int
+    provider_id: int | None = None
     discount: str | None = None
-    tax_id: int | None = None
 
 
 @dataclass(frozen=True)

@@ -3,18 +3,17 @@ import { CURRENCY_LABELS } from "../api/products.js";
 
 const CURRENCIES = ["usd", "rub", "eur"];
 
-export default function BuyInOneClickModal({ product, price, onClose, onSubmit }) {
-  const [currency, setCurrency] = useState(price?.currency ?? "usd");
+export default function CartCheckoutModal({ cart, onClose, onSubmit }) {
+  const [currency, setCurrency] = useState("usd");
   const [discount, setDiscount] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async () => {
-    if (!price) return;
     setLoading(true);
     setError(null);
     try {
-      await onSubmit(product.id, currency, discount.trim());
+      await onSubmit(currency, discount.trim());
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -24,8 +23,8 @@ export default function BuyInOneClickModal({ product, price, onClose, onSubmit }
   return (
     <div className="modal" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="modal__panel" onClick={(e) => e.stopPropagation()}>
-        <h3 className="modal__title">Купить в один клик</h3>
-        <p className="modal__product">{product.name}</p>
+        <h3 className="modal__title">Оплатить заказ</h3>
+        <p className="modal__product">Товаров: {cart.items.length}</p>
 
         <div className="modal__currencies">
           {CURRENCIES.map((cur) => (
@@ -42,11 +41,11 @@ export default function BuyInOneClickModal({ product, price, onClose, onSubmit }
         </div>
 
         <div className="modal__field">
-          <label className="modal__label" htmlFor="discount-input">
+          <label className="modal__label" htmlFor="cart-discount-input">
             Промокод
           </label>
           <input
-            id="discount-input"
+            id="cart-discount-input"
             className="modal__input"
             type="text"
             value={discount}
@@ -55,19 +54,13 @@ export default function BuyInOneClickModal({ product, price, onClose, onSubmit }
           />
         </div>
 
-        <p className="modal__price">
-          {price
-            ? `${price.price} ${CURRENCY_LABELS[price.currency]}`
-            : "Цена недоступна"}
-        </p>
-
         {error && <p className="modal__error">Ошибка: {error}</p>}
 
         <div className="modal__actions">
           <button
             type="button"
             className="modal__button"
-            disabled={!price || loading}
+            disabled={loading}
             onClick={handleSubmit}
           >
             {loading ? "Оплата…" : "Оплатить"}

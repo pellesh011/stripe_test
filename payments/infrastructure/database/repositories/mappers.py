@@ -120,6 +120,7 @@ def order_to_entity(
         discount=discount,
         tax=tax,
         id=model.id,
+        created_at=model.created_at,
     )
 
 
