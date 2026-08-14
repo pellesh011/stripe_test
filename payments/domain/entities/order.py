@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 
@@ -29,6 +30,7 @@ class Order:
     cart: Cart
     discount: Discount | None
     tax: Tax | None
+    created_at: datetime | None
 
     def __init__(
         self,
@@ -37,6 +39,7 @@ class Order:
         discount: Discount | None = None,
         tax: Tax | None = None,
         id: int | None = None,
+        created_at: datetime | None = None,
     ):
         self.currency = currency
         self.items = []
@@ -45,6 +48,7 @@ class Order:
         self.discount = discount
         self.tax = tax
         self.id = id
+        self.created_at = created_at
 
     def add(self, item: OrderItem):
         self.items.append(item)
@@ -89,6 +93,7 @@ class Order:
         discount: Discount | None = None,
         tax: Tax | None = None,
         id: int | None = None,
+        created_at: datetime | None = None,
     ) -> Order:
         order = cls(
             currency=currency,
@@ -96,6 +101,7 @@ class Order:
             discount=discount,
             tax=tax,
             id=id,
+            created_at=created_at,
         )
 
         order.items = items

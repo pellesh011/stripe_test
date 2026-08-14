@@ -12,6 +12,7 @@ def _serialize_order(order: Order) -> dict:
         "status": order.status.value,
         "currency": order.currency.value,
         "total": str(order.total()),
+        "created_at": order.created_at.isoformat() if order.created_at else None,
         "items": [
             {
                 "product_id": item.product.id,

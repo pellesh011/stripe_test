@@ -33,6 +33,7 @@ def test_get_orders_returns_orders(client, order, order_item):
     assert entry["status"] == OrderStatus.CREATED.value
     assert entry["currency"] == "eur"
     assert entry["total"] == "9.00"
+    assert isinstance(entry["created_at"], str)
     assert len(entry["items"]) == 1
     item = entry["items"][0]
     assert item["product_id"] == order_item.product.id

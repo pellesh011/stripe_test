@@ -6,3 +6,24 @@ export async function getActiveCart() {
   const data = await response.json();
   return data.cart || null;
 }
+
+export async function addToCart(productId, productPriceId, cartId) {
+  const response = await fetch("/api/cart/add/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      product_id: productId,
+      product_price_id: productPriceId,
+      cart_id: cartId,
+    }),
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(data?.error || `API error: ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+  return data.cart || null;
+}

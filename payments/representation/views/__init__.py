@@ -1,4 +1,4 @@
-from payments.representation.views.cart import get_or_create_cart
+from payments.representation.views.cart import add_to_cart, get_or_create_cart
 from payments.representation.views.checkout import (
     buy_in_one_click,
     checkout,
@@ -8,6 +8,7 @@ from payments.representation.views.products import get_product_list
 from payments.representation.views.webhook import stripe_webhook
 
 __all__ = [
+    "add_to_cart",
     "buy_in_one_click",
     "checkout",
     "get_or_create_cart",

@@ -13,6 +13,17 @@ const ORDER_STATUS_LABELS = {
   refunded: "Возвращён",
 };
 
+function formatDate(value) {
+  if (!value) return "—";
+  return new Date(value).toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,8 +67,13 @@ export default function OrdersPage() {
         {orders.map((order) => (
           <div className="order" key={order.id}>
             <div className="order__header">
-              <span className="order__number">Заказ №{order.id}</span>
-              <span className="order__status">
+              <div className="order__title">
+                <span className="order__number">Заказ №{order.id}</span>
+                <span className="order__date">{formatDate(order.created_at)}</span>
+              </div>
+              <span
+                className={`order__status order__status--${order.status}`}
+              >
                 {ORDER_STATUS_LABELS[order.status] || order.status}
               </span>
             </div>

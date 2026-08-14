@@ -133,18 +133,35 @@ body {
   font-weight: 600;
 }
 
-.card__buy {
+.card__actions {
+  display: flex;
+  gap: 8px;
   margin-top: auto;
+}
+
+.card__buy,
+.card__add {
+  flex: 1;
   padding: 8px 16px;
   border: none;
   border-radius: 6px;
-  background: #1b6ef3;
-  color: #fff;
   cursor: pointer;
 }
 
-.card__buy:disabled {
+.card__add {
+  background: #e4e7eb;
+  color: #1f2933;
+}
+
+.card__buy {
+  background: #1b6ef3;
+  color: #fff;
+}
+
+.card__buy:disabled,
+.card__add:disabled {
   background: #cbd2d9;
+  color: #1f2933;
   cursor: not-allowed;
 }
 
@@ -378,9 +395,20 @@ body {
   gap: 16px;
 }
 
+.order__title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .order__number {
   font-size: 16px;
   font-weight: 600;
+}
+
+.order__date {
+  font-size: 13px;
+  color: #52606d;
 }
 
 .order__status {
@@ -389,6 +417,47 @@ body {
   background: #e4e7eb;
   color: #52606d;
   font-size: 13px;
+  white-space: nowrap;
+}
+
+.order__status--created {
+  background: #e4e7eb;
+  color: #52606d;
+}
+
+.order__status--pending_payment {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.order__status--paid {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.order__status--processing {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.order__status--shipped {
+  background: #cffafe;
+  color: #0e7490;
+}
+
+.order__status--completed {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.order__status--cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.order__status--refunded {
+  background: #ffedd5;
+  color: #c2410c;
 }
 
 .order__items {

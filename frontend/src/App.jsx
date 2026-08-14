@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { buyInOneClick, getProducts } from "./api/products.js";
-import { getActiveCart } from "./api/cart.js";
+import { addToCart, getActiveCart } from "./api/cart.js";
 import ProductCard from "./components/ProductCard.jsx";
 import BuyInOneClickModal from "./components/BuyInOneClickModal.jsx";
 import PaymentPage from "./components/PaymentPage.jsx";
@@ -75,6 +75,41 @@ export default function App() {
     [buyProduct]
   );
 
+  const handleAddToCart = useCallback(
+    async (product, price) => {
+      let cartId = cart?.id ?? null;
+      if (!cartId) {
+        const fresh = await getActiveCart();
+        if (!fresh) {
+          throw new Error("Не удалось получить корзину");
+        }
+        setCart(fresh);
+        cartId = fresh.id;
+      }
+
+      const doAdd = async (id) => {
+        const updated = await addToCart(product.id, price?.id, id);
+        setCart(updated);
+      };
+
+      try {
+        await doAdd(cartId);
+      } catch (err) {
+        if (err?.status === 400 && /not active/i.test(err.message)) {
+          const fresh = await getActiveCart();
+          if (!fresh) {
+            throw err;
+          }
+          setCart(fresh);
+          await doAdd(fresh.id);
+          return;
+        }
+        throw err;
+      }
+    },
+    [cart]
+  );
+
   if (payment) {
     return (
       <PaymentPage
@@ -111,6 +146,7 @@ export default function App() {
                   key={product.id}
                   product={product}
                   onBuyOneClick={(p, price) => setBuyProduct({ product: p, price })}
+                  onAddToCart={handleAddToCart}
                 />
               ))}
             </div>
