@@ -6,24 +6,18 @@
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
-
     "forwardPorts": [
         8000,
         5173
     ],
-    
     "portsAttributes": {
         "8000": {
             "label": "Django API",
-            "protocol": "http",
-            "onAutoForward": "openBrowser",
-            "visibility": "public"
+            "protocol": "http"
         },
         "5173": {
             "label": "React Frontend",
-            "protocol": "http",
-            "onAutoForward": "openBrowser",
-            "visibility": "public"
+            "protocol": "http"
         }
     },
 
