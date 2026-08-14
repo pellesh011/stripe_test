@@ -21,17 +21,21 @@ export function formatPrice(price, currency) {
   return `${price} ${CURRENCY_LABELS[currency] || currency.toUpperCase()}`;
 }
 
-export async function buyInOneClick(productId, productPriceId, currency) {
+export async function buyInOneClick(productId, productPriceId, currency, discount) {
+  const body = {
+    product_id: productId,
+    product_price_id: productPriceId,
+    currency,
+  };
+  if (discount) {
+    body.discount = discount;
+  }
   const response = await fetch("/api/buy-in-one-click/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      product_id: productId,
-      product_price_id: productPriceId,
-      currency,
-    }),
+    body: JSON.stringify(body),
   });
   const data = await response.json().catch(() => null);
   if (!response.ok) {

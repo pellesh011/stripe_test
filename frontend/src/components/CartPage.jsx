@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { getActiveCart } from "../api/cart.js";
 import { formatPrice } from "../api/products.js";
+import CartCheckoutModal from "./CartCheckoutModal.jsx";
 
-export default function CartPage({ onBackToProducts }) {
+export default function CartPage({ onBackToProducts, onCheckout }) {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showCheckout, setShowCheckout] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,11 +70,28 @@ export default function CartPage({ onBackToProducts }) {
         <button
           type="button"
           className="button"
+          onClick={() => setShowCheckout(true)}
+        >
+          Оплатить
+        </button>
+        <button
+          type="button"
+          className="button button--secondary"
           onClick={onBackToProducts}
         >
           К товарам
         </button>
       </div>
+
+      {showCheckout && cart && (
+        <CartCheckoutModal
+          cart={cart}
+          onClose={() => setShowCheckout(false)}
+          onSubmit={(currency, discount) =>
+            onCheckout(cart.id, currency, discount)
+          }
+        />
+      )}
     </div>
   );
 }

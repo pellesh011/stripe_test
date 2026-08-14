@@ -27,3 +27,27 @@ export async function addToCart(productId, productPriceId, cartId) {
   }
   return data.cart || null;
 }
+
+export async function checkoutCart(cartId, currency, discount) {
+  const body = {
+    cart_id: cartId,
+    currency,
+  };
+  if (discount) {
+    body.discount = discount;
+  }
+  const response = await fetch("/api/cart/checkout/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(data?.error || `API error: ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+  return data;
+}

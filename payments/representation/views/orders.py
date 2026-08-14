@@ -11,6 +11,9 @@ def _serialize_order(order: Order) -> dict:
         "id": order.id,
         "status": order.status.value,
         "currency": order.currency.value,
+        "subtotal": str(order.subtotal()),
+        "discount_amount": str(order.discount_amount()),
+        "tax_amount": str(order.tax_amount()),
         "total": str(order.total()),
         "created_at": order.created_at.isoformat() if order.created_at else None,
         "items": [
@@ -18,7 +21,12 @@ def _serialize_order(order: Order) -> dict:
                 "product_id": item.product.id,
                 "product_name": item.product.name,
                 "price": str(item.price),
-                "currency": item.product_price.currency.value,
+                "currency": order.currency.value,
+                "product_price": {
+                    "id": item.product_price.id,
+                    "currency": item.product_price.currency.value,
+                    "price": str(item.product_price.price),
+                },
             }
             for item in order.items
         ],

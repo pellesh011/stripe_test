@@ -81,17 +81,46 @@ export default function OrdersPage() {
               {order.items.map((item, index) => (
                 <li className="order__item" key={`${order.id}-${index}`}>
                   <span className="order__item-name">{item.product_name}</span>
-                  <span className="order__item-price">
-                    {formatPrice(item.price, item.currency)}
-                  </span>
+                  <div className="order__item-prices">
+                    <span className="order__item-original">
+                      {formatPrice(item.product_price.price, item.product_price.currency)}
+                    </span>
+                    <span className="order__item-price">
+                      {formatPrice(item.price, item.currency)}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
             <div className="order__footer">
-              <span>Итого:</span>
-              <span className="order__total">
-                {formatPrice(order.total, order.currency)}
-              </span>
+              <div className="order__footer-row">
+                <span>Сумма</span>
+                <span>{formatPrice(order.subtotal, order.currency)}</span>
+              </div>
+              <div className="order__footer-row">
+                <span>Сумма с discount</span>
+                <span>
+                  {formatPrice(
+                    (Number(order.subtotal) - Number(order.discount_amount)).toFixed(2),
+                    order.currency
+                  )}
+                </span>
+              </div>
+              <div className="order__footer-row">
+                <span>Сумма с tax</span>
+                <span>
+                  {formatPrice(
+                    (Number(order.subtotal) - Number(order.discount_amount) + Number(order.tax_amount)).toFixed(2),
+                    order.currency
+                  )}
+                </span>
+              </div>
+              <div className="order__footer-row order__footer-row--total">
+                <span>Итого</span>
+                <span className="order__total">
+                  {formatPrice(order.total, order.currency)}
+                </span>
+              </div>
             </div>
           </div>
         ))}

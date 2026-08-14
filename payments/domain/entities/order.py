@@ -66,7 +66,7 @@ class Order:
     def tax_amount(self) -> Decimal:
         if self.tax is None:
             return Decimal("0.00")
-        amount = self.subtotal() * self.tax.rate / 100
+        amount = (self.subtotal() - self.discount_amount()) * self.tax.rate / 100
         return amount.quantize(Decimal("0.01"))
 
     def discount_amount(self) -> Decimal:

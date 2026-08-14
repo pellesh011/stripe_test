@@ -15,6 +15,7 @@ from payments.domain.exceptions import (
     ProductNotActiveError,
 )
 from payments.infrastructure.database.uow import DjangoUnitOfWork
+from payments.infrastructure.services.tax_selector import DefaultTaxSelector
 from payments.tests.application.fakes import (
     CLIENT_SECRET,
     PAYMENT_INTENT_ID,
@@ -47,7 +48,7 @@ def _build_use_case(
         order_items=order_item_repo,
         exchange_rates=exchange_rate_repo,
         discounts=discount_repo,
-        taxes=tax_repo,
+        tax_selector=DefaultTaxSelector(tax_repo),
         payments=payment_repo,
         payment_attempts=payment_attempt_repo,
         payment_providers=payment_provider_repo,
@@ -85,6 +86,7 @@ def test_execute_creates_order_and_converts_cart(
     product,
     product_price,
     exchange_rate,
+    tax,
     payment_provider,
 ):
     assert product.id is not None
@@ -115,21 +117,21 @@ def test_execute_creates_order_and_converts_cart(
     recorded_order, amount, currency = payment_gateway.calls[0]
     assert recorded_order.id is not None
     assert result.order_id == recorded_order.id
-    assert result.amount == Decimal("10.00")
+    assert result.amount == Decimal("12.00")
     assert result.currency is Currency.EUR
     assert recorded_order.status is OrderStatus.CREATED
     assert recorded_order.currency is Currency.EUR
     assert len(recorded_order.items) == 1
     assert recorded_order.items[0].product.id == product.id
     assert recorded_order.items[0].price == Decimal("10.00")
-    assert amount == Decimal("10.00")
+    assert amount == Decimal("12.00")
     assert currency is Currency.EUR
 
     loaded_cart = cart_repo.get_by_id(recorded_order.cart.id)
     assert loaded_cart.status is CartStatus.CHECKOUT
 
     payment = payment_repo.get_by_order_id(recorded_order.id)
-    assert payment.amount == Decimal("10.00")
+    assert payment.amount == Decimal("12.00")
 
     attempts = payment_attempt_repo.get_by_payment_id(payment.id)
     assert len(attempts) == 1
@@ -203,6 +205,7 @@ def test_execute_no_provider_raises(
     product,
     product_price,
     exchange_rate,
+    tax,
 ):
     assert product.id is not None
     assert product_price.id is not None

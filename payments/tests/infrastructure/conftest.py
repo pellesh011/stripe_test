@@ -14,6 +14,7 @@ from payments.domain.entities.payment_provider import PaymentProvider
 from payments.domain.entities.product import Product
 from payments.domain.entities.product_price import ProductPrice
 from payments.domain.entities.tax import Tax
+from payments.infrastructure.database.models.tax import TaxModel
 from payments.infrastructure.database.repositories.cart import CartRepositoryImpl
 from payments.infrastructure.database.repositories.cart_item import (
     CartItemRepositoryImpl,
@@ -24,6 +25,7 @@ from payments.infrastructure.database.repositories.discount import (
 from payments.infrastructure.database.repositories.exchange_rate import (
     ExchangeRateRepositoryImpl,
 )
+from payments.infrastructure.database.repositories.mappers import tax_to_entity
 from payments.infrastructure.database.repositories.order import OrderRepositoryImpl
 from payments.infrastructure.database.repositories.order_item import (
     OrderItemRepositoryImpl,
@@ -141,10 +143,9 @@ def inactive_discount(discount_repo, db) -> Discount:
 
 
 @pytest.fixture
-def tax(tax_repo, db) -> Tax:
-    entity = Tax(name="VAT", rate=20)
-    tax_repo.save(entity)
-    return entity
+def tax(db) -> Tax:
+    model = TaxModel.objects.create(id=1, name="VAT", rate=20)
+    return tax_to_entity(model)
 
 
 @pytest.fixture

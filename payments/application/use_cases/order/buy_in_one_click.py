@@ -14,9 +14,9 @@ from payments.domain.repositories.payment_attempt import PaymentAttemptRepositor
 from payments.domain.repositories.payment_provider import PaymentProviderRepository
 from payments.domain.repositories.product import ProductRepository
 from payments.domain.repositories.product_price import ProductPriceRepository
-from payments.domain.repositories.tax import TaxRepository
 from payments.domain.repositories.uow import UnitOfWork
 from payments.domain.services.payment_gateway import PaymentGateway
+from payments.domain.services.tax_selector import TaxSelector
 
 
 class BuyInOneClickUseCase:
@@ -31,7 +31,7 @@ class BuyInOneClickUseCase:
         order_items: OrderItemRepository,
         exchange_rates: ExchangeRateRepository,
         discounts: DiscountRepository,
-        taxes: TaxRepository,
+        tax_selector: TaxSelector,
         payments: PaymentRepository,
         payment_attempts: PaymentAttemptRepository,
         payment_providers: PaymentProviderRepository,
@@ -52,7 +52,7 @@ class BuyInOneClickUseCase:
             order_items=order_items,
             exchange_rates=exchange_rates,
             discounts=discounts,
-            taxes=taxes,
+            tax_selector=tax_selector,
             payments=payments,
             payment_attempts=payment_attempts,
             payment_providers=payment_providers,
@@ -78,6 +78,7 @@ class BuyInOneClickUseCase:
                 cart_id=cart_item.cart.id,
                 currency=data.currency,
                 provider_id=provider.id,
+                discount=data.discount,
             )
         )
 

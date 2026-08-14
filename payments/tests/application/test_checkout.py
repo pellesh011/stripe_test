@@ -24,6 +24,7 @@ from payments.infrastructure.database.models.payment_attempt import (
     PaymentAttemptModel,
 )
 from payments.infrastructure.database.uow import DjangoUnitOfWork
+from payments.infrastructure.services.tax_selector import DefaultTaxSelector
 from payments.tests.application.fakes import (
     CLIENT_SECRET,
     PAYMENT_INTENT_ID,
@@ -50,7 +51,7 @@ def _build_use_case(
         order_items=order_item_repo,
         exchange_rates=exchange_rate_repo,
         discounts=discount_repo,
-        taxes=tax_repo,
+        tax_selector=DefaultTaxSelector(tax_repo),
         payments=payment_repo,
         payment_attempts=payment_attempt_repo,
         payment_providers=payment_provider_repo,
@@ -63,14 +64,12 @@ def _build_dto(
     provider_id: int,
     currency: str = "eur",
     discount: str | None = None,
-    tax_id: int | None = None,
 ):
     return CheckoutDTO(
         cart_id=cart_id,
         currency=currency,
         provider_id=provider_id,
         discount=discount,
-        tax_id=tax_id,
     )
 
 
@@ -111,7 +110,6 @@ def test_execute_creates_order(
         cart.id,
         payment_provider.id,
         discount=discount.name,
-        tax_id=tax.id,
     )
 
     result = use_case.execute(dto)
@@ -122,7 +120,7 @@ def test_execute_creates_order(
     recorded_order, amount, currency = payment_gateway.calls[0]
     assert recorded_order.id is not None
     assert result.order_id == recorded_order.id
-    assert result.amount == Decimal("11.00")
+    assert result.amount == Decimal("10.80")
     assert result.currency is Currency.EUR
     assert recorded_order.currency is Currency.EUR
     assert recorded_order.status is OrderStatus.CREATED
@@ -132,7 +130,7 @@ def test_execute_creates_order(
     assert recorded_order.tax.id == tax.id
     assert recorded_order.discount is not None
     assert recorded_order.discount.id == discount.id
-    assert amount == Decimal("11.00")
+    assert amount == Decimal("10.80")
     assert currency is Currency.EUR
 
     loaded_order = order_repo.get_by_id(recorded_order.id)
@@ -148,7 +146,7 @@ def test_execute_creates_order(
     assert loaded_cart.status is CartStatus.CHECKOUT
 
     payment = payment_repo.get_by_order_id(recorded_order.id)
-    assert payment.amount == Decimal("11.00")
+    assert payment.amount == Decimal("10.80")
     assert payment.currency is Currency.EUR
 
     attempts = payment_attempt_repo.get_by_payment_id(payment.id)
@@ -160,7 +158,7 @@ def test_execute_creates_order(
 
 
 @pytest.mark.django_db
-def test_execute_without_discount_and_tax(
+def test_execute_without_discount_applies_default_tax(
     cart_repo,
     order_repo,
     order_item_repo,
@@ -174,6 +172,7 @@ def test_execute_without_discount_and_tax(
     cart,
     cart_item,
     exchange_rate,
+    tax,
     payment_provider,
 ):
     use_case = _build_use_case(
@@ -197,15 +196,16 @@ def test_execute_without_discount_and_tax(
 
     recorded_order, amount, currency = payment_gateway.calls[0]
     assert recorded_order.discount is None
-    assert recorded_order.tax is None
+    assert recorded_order.tax is not None
+    assert recorded_order.tax.id == 1
     assert result.order_id == recorded_order.id
-    assert result.amount == Decimal("10.00")
+    assert result.amount == Decimal("12.00")
     assert result.currency is Currency.EUR
-    assert amount == Decimal("10.00")
+    assert amount == Decimal("12.00")
     assert currency is Currency.EUR
 
     payment = payment_repo.get_by_order_id(recorded_order.id)
-    assert payment.amount == Decimal("10.00")
+    assert payment.amount == Decimal("12.00")
 
 
 @pytest.mark.django_db
@@ -223,6 +223,7 @@ def test_execute_gateway_failure_keeps_attempt_created(
     cart,
     cart_item,
     exchange_rate,
+    tax,
     payment_provider,
 ):
     def failing_create_payment(*args, **kwargs):
@@ -475,6 +476,7 @@ def test_execute_discount_not_found(
     payment_gateway,
     cart_item,
     exchange_rate,
+    tax,
     payment_provider,
 ):
     assert cart_item.cart is not None
@@ -512,6 +514,7 @@ def test_execute_inactive_discount(
     payment_gateway,
     cart_item,
     exchange_rate,
+    tax,
     inactive_discount,
     payment_provider,
 ):
@@ -592,6 +595,7 @@ def test_execute_provider_not_found(
     payment_gateway,
     cart_item,
     exchange_rate,
+    tax,
 ):
     assert cart_item.cart is not None
     cart_id = cart_item.cart.id
@@ -629,6 +633,7 @@ def test_execute_converts_items_in_different_currencies(
     payment_attempt_repo,
     payment_provider_repo,
     payment_gateway,
+    tax,
     payment_provider,
 ):
     rub_product = Product(name="Rub Product", is_active=True)
@@ -691,9 +696,9 @@ def test_execute_converts_items_in_different_currencies(
     assert result.client_secret == CLIENT_SECRET
     recorded_order, amount, currency = payment_gateway.calls[0]
     assert currency is Currency.EUR
-    assert amount == Decimal("9.50")
+    assert amount == Decimal("11.40")
     assert result.order_id == recorded_order.id
-    assert result.amount == Decimal("9.50")
+    assert result.amount == Decimal("11.40")
     assert result.currency is Currency.EUR
     assert len(recorded_order.items) == 2
     prices_by_currency = {

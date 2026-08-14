@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { buyInOneClick, getProducts } from "./api/products.js";
-import { addToCart, getActiveCart } from "./api/cart.js";
+import { addToCart, checkoutCart, getActiveCart } from "./api/cart.js";
 import ProductCard from "./components/ProductCard.jsx";
 import BuyInOneClickModal from "./components/BuyInOneClickModal.jsx";
 import PaymentPage from "./components/PaymentPage.jsx";
@@ -56,9 +56,9 @@ export default function App() {
   }, [currency]);
 
   const handleBuyOneClick = useCallback(
-    async (productId, cur) => {
+    async (productId, cur, discount) => {
       const price = buyProduct?.price ?? null;
-      const result = await buyInOneClick(productId, price?.id, cur);
+      const result = await buyInOneClick(productId, price?.id, cur, discount);
       if (!result.client_secret) {
         throw new Error("Сервер не вернул client_secret");
       }
@@ -73,6 +73,25 @@ export default function App() {
       });
     },
     [buyProduct]
+  );
+
+  const handleCartCheckout = useCallback(
+    async (cartId, cur, discount) => {
+      const result = await checkoutCart(cartId, cur, discount);
+      if (!result.client_secret) {
+        throw new Error("Сервер не вернул client_secret");
+      }
+      setCart(null);
+      setPayment({
+        clientSecret: result.client_secret,
+        order: {
+          id: result.order_id,
+          amount: result.amount,
+          currency: result.currency,
+        },
+      });
+    },
+    []
   );
 
   const handleAddToCart = useCallback(
@@ -164,7 +183,10 @@ export default function App() {
       )}
 
       {view === "cart" && (
-        <CartPage onBackToProducts={() => setView("products")} />
+        <CartPage
+          onBackToProducts={() => setView("products")}
+          onCheckout={handleCartCheckout}
+        />
       )}
 
       {view === "orders" && <OrdersPage />}

@@ -25,9 +25,9 @@ from payments.domain.repositories.order_item import OrderItemRepository
 from payments.domain.repositories.payment import PaymentRepository
 from payments.domain.repositories.payment_attempt import PaymentAttemptRepository
 from payments.domain.repositories.payment_provider import PaymentProviderRepository
-from payments.domain.repositories.tax import TaxRepository
 from payments.domain.repositories.uow import UnitOfWork
 from payments.domain.services.payment_gateway import PaymentGateway
+from payments.domain.services.tax_selector import TaxSelector
 
 
 class CheckoutUseCase:
@@ -39,7 +39,7 @@ class CheckoutUseCase:
         order_items: OrderItemRepository,
         exchange_rates: ExchangeRateRepository,
         discounts: DiscountRepository,
-        taxes: TaxRepository,
+        tax_selector: TaxSelector,
         payments: PaymentRepository,
         payment_attempts: PaymentAttemptRepository,
         payment_providers: PaymentProviderRepository,
@@ -51,7 +51,7 @@ class CheckoutUseCase:
         self.order_items = order_items
         self.exchange_rates = exchange_rates
         self.discounts = discounts
-        self.taxes = taxes
+        self.tax_selector = tax_selector
         self.payments = payments
         self.payment_attempts = payment_attempts
         self.payment_providers = payment_providers
@@ -71,10 +71,7 @@ class CheckoutUseCase:
                 exchange_rates,
             )
 
-            if data.tax_id is not None:
-                order.add_tax(
-                    self.taxes.get_by_id(data.tax_id),
-                )
+            order.add_tax(self.tax_selector.select())
 
             if data.discount is not None:
                 order.add_discount(
@@ -96,8 +93,10 @@ class CheckoutUseCase:
             )
             self.payments.save(payment)
 
-            provider = self.payment_providers.get_by_id(
-                data.provider_id,
+            provider = (
+                self.payment_providers.get_by_id(data.provider_id)
+                if data.provider_id is not None
+                else self.payment_providers.get_default()
             )
 
             payment_attempt = PaymentAttempt(
