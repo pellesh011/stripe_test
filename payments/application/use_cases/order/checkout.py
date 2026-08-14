@@ -118,7 +118,7 @@ class CheckoutUseCase:
                 self.order_items.delete(order_item=order_item)
             self.orders.delete(order=order)
             cart.status = CartStatus.ACTIVE
-            # TODO нужен флаг для запроса, является ли это buy-in-one-click 
+            # TODO нужен флаг для запроса, является ли это buy-in-one-click
             # и удалять корзину если да
             self.carts.save(cart=cart)
             raise
