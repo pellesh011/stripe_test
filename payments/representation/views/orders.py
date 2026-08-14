@@ -15,6 +15,25 @@ def _serialize_order(order: Order) -> dict:
         "discount_amount": str(order.discount_amount()),
         "tax_amount": str(order.tax_amount()),
         "total": str(order.total()),
+        "discount": (
+            {
+                "id": order.discount.id,
+                "name": order.discount.name,
+                "type": order.discount.type.value,
+                "value": str(order.discount.value),
+            }
+            if order.discount is not None
+            else None
+        ),
+        "tax": (
+            {
+                "id": order.tax.id,
+                "name": order.tax.name,
+                "rate": order.tax.rate,
+            }
+            if order.tax is not None
+            else None
+        ),
         "created_at": order.created_at.isoformat() if order.created_at else None,
         "items": [
             {

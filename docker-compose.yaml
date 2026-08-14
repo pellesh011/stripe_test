@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     container_name: api
     ports:
-      - "8080:8080"
+      - "8000:8080"
     env_file:
       - .env
     environment:
@@ -26,7 +26,7 @@ services:
         VITE_STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY}
     container_name: frontend
     ports:
-      - "3000:80"
+      - "5173:80"
     depends_on:
       - api
 

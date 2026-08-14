@@ -13,6 +13,20 @@ const ORDER_STATUS_LABELS = {
   refunded: "Возвращён",
 };
 
+function formatDiscountLabel(order) {
+  if (!order.discount) return "—";
+  const { name, type, value } = order.discount;
+  if (type === "percentage") {
+    return `${name} · ${value}%`;
+  }
+  return `${name} · −${formatPrice(value, order.currency)}`;
+}
+
+function formatTaxLabel(order) {
+  if (!order.tax) return "—";
+  return `${order.tax.name} · ${order.tax.rate}%`;
+}
+
 function formatDate(value) {
   if (!value) return "—";
   return new Date(value).toLocaleString("ru-RU", {
@@ -93,6 +107,14 @@ export default function OrdersPage() {
               ))}
             </ul>
             <div className="order__footer">
+              <div className="order__footer-row">
+                <span>Скидка</span>
+                <span>{formatDiscountLabel(order)}</span>
+              </div>
+              <div className="order__footer-row">
+                <span>Налог</span>
+                <span>{formatTaxLabel(order)}</span>
+              </div>
               <div className="order__footer-row">
                 <span>Сумма</span>
                 <span>{formatPrice(order.subtotal, order.currency)}</span>

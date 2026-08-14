@@ -36,6 +36,13 @@ def test_get_orders_returns_orders(client, order, order_item):
     assert entry["discount_amount"] == "1.00"
     assert entry["tax_amount"] == "0.00"
     assert entry["total"] == "9.00"
+    assert entry["discount"] == {
+        "id": order.discount.id,
+        "name": order.discount.name,
+        "type": order.discount.type.value,
+        "value": str(order.discount.value),
+    }
+    assert entry["tax"] is None
     assert isinstance(entry["created_at"], str)
     assert len(entry["items"]) == 1
     item = entry["items"][0]
@@ -60,6 +67,11 @@ def test_get_orders_returns_tax_amount(client, order_repo, order, order_item, ta
     entry = response.json()["orders"][0]
     assert entry["tax_amount"] == "1.80"
     assert entry["total"] == "10.80"
+    assert entry["tax"] == {
+        "id": tax.id,
+        "name": tax.name,
+        "rate": tax.rate,
+    }
 
 
 @pytest.mark.django_db
