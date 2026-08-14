@@ -75,6 +75,64 @@ def test_get_orders_returns_tax_amount(client, order_repo, order, order_item, ta
 
 
 @pytest.mark.django_db
+def test_get_orders_returns_payment_intent(
+    client, payment_attempt_repo, payment_attempt
+):
+    assert payment_attempt.id is not None
+    payment_attempt.external_id = "pi_test_123"
+    payment_attempt.client_secret = "pi_test_123_secret_secret"
+    payment_attempt_repo.save(payment_attempt)
+
+    response = client.get(reverse("order-list"))
+
+    assert response.status_code == 200
+    entry = response.json()["orders"][0]
+    assert entry["payment_intent"] == {
+        "id": "pi_test_123",
+        "client_secret": "pi_test_123_secret_secret",
+    }
+
+
+@pytest.mark.django_db
+def test_get_orders_returns_payment_intent_null_without_attempt(client, order):
+    assert order.id is not None
+
+    response = client.get(reverse("order-list"))
+
+    assert response.status_code == 200
+    entry = response.json()["orders"][0]
+    assert entry["payment_intent"] is None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "status",
+    [
+        OrderStatus.PAID,
+        OrderStatus.CANCELLED,
+        OrderStatus.COMPLETED,
+        OrderStatus.REFUNDED,
+    ],
+)
+def test_get_orders_does_not_return_payment_intent_for_finished_order(
+    client, order_repo, order, payment_attempt_repo, payment_attempt, status
+):
+    assert order.id is not None
+    assert payment_attempt.id is not None
+    payment_attempt.external_id = "pi_test_123"
+    payment_attempt.client_secret = "pi_test_123_secret_secret"
+    payment_attempt_repo.save(payment_attempt)
+    order.status = status
+    order_repo.save(order)
+
+    response = client.get(reverse("order-list"))
+
+    assert response.status_code == 200
+    entry = response.json()["orders"][0]
+    assert entry["payment_intent"] is None
+
+
+@pytest.mark.django_db
 def test_post_returns_405(client):
     response = client.post(reverse("order-list"))
 

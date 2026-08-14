@@ -154,6 +154,7 @@ def test_execute_creates_order(
     assert attempts[0].id is not None
     assert attempts[0].provider.id == payment_provider.id
     assert attempts[0].external_id == PAYMENT_INTENT_ID
+    assert attempts[0].client_secret == CLIENT_SECRET
     assert attempts[0].status is PaymentAttemptStatus.PROCESSING
 
 

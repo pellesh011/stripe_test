@@ -129,6 +129,17 @@ export default function App() {
     [cart]
   );
 
+  const handlePayOrder = useCallback((order) => {
+    setPayment({
+      clientSecret: order.payment_intent.client_secret,
+      order: {
+        id: order.id,
+        amount: order.total,
+        currency: order.currency,
+      },
+    });
+  }, []);
+
   if (payment) {
     return (
       <PaymentPage
@@ -189,7 +200,7 @@ export default function App() {
         />
       )}
 
-      {view === "orders" && <OrdersPage />}
+      {view === "orders" && <OrdersPage onPay={handlePayOrder} />}
     </div>
   );
 }

@@ -57,6 +57,14 @@ class PaymentAttemptRepositoryImpl(PaymentAttemptRepository):
         )
         return [self._to_entity(model) for model in qs]
 
+    def get_by_order_id(self, order_id: int) -> list[PaymentAttempt]:
+        qs = (
+            PaymentAttemptModel.objects.filter(payment__order_id=order_id)
+            .select_related(*PAYMENT_ATTEMPT_SELECT_RELATED)
+            .order_by("-id")
+        )
+        return [self._to_entity(model) for model in qs]
+
     def _to_entity(self, model: PaymentAttemptModel) -> PaymentAttempt:
         provider = payment_provider_to_entity(model.provider)
         payment = build_payment(model.payment)
@@ -77,6 +85,7 @@ class PaymentAttemptRepositoryImpl(PaymentAttemptRepository):
         if payment_attempt.id is None:
             model = PaymentAttemptModel.objects.create(
                 external_id=payment_attempt.external_id,
+                client_secret=payment_attempt.client_secret,
                 provider_id=payment_attempt.provider.id,
                 payment_id=payment_attempt.payment.id,
                 status=payment_attempt.status.value,
@@ -86,6 +95,7 @@ class PaymentAttemptRepositoryImpl(PaymentAttemptRepository):
         else:
             PaymentAttemptModel.objects.filter(id=payment_attempt.id).update(
                 external_id=payment_attempt.external_id,
+                client_secret=payment_attempt.client_secret,
                 provider_id=payment_attempt.provider.id,
                 payment_id=payment_attempt.payment.id,
                 status=payment_attempt.status.value,

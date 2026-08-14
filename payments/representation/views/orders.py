@@ -4,6 +4,9 @@ from django.http import JsonResponse
 from payments.application.use_cases.order.get_orders import GetOrdersUseCase
 from payments.domain.entities.order import Order
 from payments.infrastructure.database.repositories.order import OrderRepositoryImpl
+from payments.infrastructure.database.repositories.payment_attempt import (
+    PaymentAttemptRepositoryImpl,
+)
 
 
 def _serialize_order(order: Order) -> dict:
@@ -35,6 +38,14 @@ def _serialize_order(order: Order) -> dict:
             else None
         ),
         "created_at": order.created_at.isoformat() if order.created_at else None,
+        "payment_intent": (
+            {
+                "id": order.payment_intent,
+                "client_secret": order.client_secret,
+            }
+            if order.payment_intent is not None
+            else None
+        ),
         "items": [
             {
                 "product_id": item.product.id,
@@ -61,6 +72,7 @@ async def get_orders(request) -> JsonResponse:
 
     use_case = GetOrdersUseCase(
         orders=OrderRepositoryImpl(),
+        payment_attempts=PaymentAttemptRepositoryImpl(),
     )
 
     orders = await sync_to_async(
