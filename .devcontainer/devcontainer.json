@@ -11,7 +11,7 @@
         8000,
         5173
     ],
-
+    
     "portsAttributes": {
         "8000": {
             "label": "Django API",
