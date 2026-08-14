@@ -65,7 +65,7 @@ def test_checkout_success(
     assert data["amount"] == "11.00"
     assert data["currency"] == "eur"
 
-    assert cart_repo.get_by_id(cart.id).status is CartStatus.CONVERTED
+    assert cart_repo.get_by_id(cart.id).status is CartStatus.CHECKOUT
 
 
 @pytest.mark.django_db
@@ -152,7 +152,7 @@ def test_checkout_inactive_cart_returns_400(
     cart,
     payment_provider,
 ):
-    cart.status = CartStatus.CHECKOUT
+    cart.status = CartStatus.CONVERTED
     cart_repo.save(cart)
 
     response = _post(client, _payload(cart.id, payment_provider.id))

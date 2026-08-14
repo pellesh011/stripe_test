@@ -86,7 +86,7 @@ class CheckoutUseCase:
             for item in order.items:
                 self.order_items.save(item)
 
-            cart.status = CartStatus.CONVERTED
+            cart.status = CartStatus.CHECKOUT
             self.carts.save(cart)
 
             payment = Payment(

@@ -126,7 +126,7 @@ def test_execute_creates_order_and_converts_cart(
     assert currency is Currency.EUR
 
     loaded_cart = cart_repo.get_by_id(recorded_order.cart.id)
-    assert loaded_cart.status is CartStatus.CONVERTED
+    assert loaded_cart.status is CartStatus.CHECKOUT
 
     payment = payment_repo.get_by_order_id(recorded_order.id)
     assert payment.amount == Decimal("10.00")

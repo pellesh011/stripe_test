@@ -5,6 +5,7 @@ from payments.domain.entities.cart_item import CartItem
 from payments.domain.exceptions import (
     CartItemNotFoundError,
     CartNotActiveError,
+    IdentificatorError,
 )
 
 
@@ -40,6 +41,11 @@ class Cart:
                 return
 
         raise CartItemNotFoundError()
+
+    def get_id(self) -> int:
+        if self.id is None:
+            raise IdentificatorError()
+        return self.id
 
     @classmethod
     def restore(

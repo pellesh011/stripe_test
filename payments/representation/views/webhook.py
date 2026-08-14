@@ -13,9 +13,11 @@ from payments.application.use_cases.payment.process_payment_webhook import (
     ProcessPaymentWebhookUseCase,
 )
 from payments.domain.exceptions import EntityNotFoundError
+from payments.domain.repositories.cart import CartRepository
 from payments.infrastructure.database.models.stripe_webhook import (
     StripeWebhookEventModel,
 )
+from payments.infrastructure.database.repositories.cart import CartRepositoryImpl
 from payments.infrastructure.database.repositories.order import OrderRepositoryImpl
 from payments.infrastructure.database.repositories.payment import (
     PaymentRepositoryImpl,
@@ -83,6 +85,7 @@ async def stripe_webhook(request) -> JsonResponse:
 
     use_case = ProcessPaymentWebhookUseCase(
         uow=DjangoUnitOfWork(),
+        carts=CartRepositoryImpl(),
         payment_attempts=PaymentAttemptRepositoryImpl(),
         payments=PaymentRepositoryImpl(),
         orders=OrderRepositoryImpl(),
