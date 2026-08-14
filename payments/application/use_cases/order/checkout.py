@@ -3,6 +3,7 @@ from decimal import Decimal
 from payments.application.dto.checkout import CheckoutDTO, CheckoutResult
 from payments.domain.entities.cart import Cart, CartStatus
 from payments.domain.entities.exchange_rate import Currency, ExchangeRate
+from payments.domain.entities.order import Order
 from payments.domain.entities.order_item import OrderItem
 from payments.domain.entities.payment import Payment
 from payments.domain.entities.payment_attempts import (
