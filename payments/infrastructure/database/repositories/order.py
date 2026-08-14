@@ -56,3 +56,6 @@ class OrderRepositoryImpl(OrderRepository):
                 tax_id=order.tax.id if order.tax is not None else None,
                 status=order.status.value,
             )
+
+    def delete(self, order: Order) -> None:
+        OrderModel.objects.get(id=order.id).delete()

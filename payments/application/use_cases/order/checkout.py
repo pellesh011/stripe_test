@@ -3,7 +3,7 @@ from decimal import Decimal
 from payments.application.dto.checkout import CheckoutDTO, CheckoutResult
 from payments.domain.entities.cart import Cart, CartStatus
 from payments.domain.entities.exchange_rate import Currency, ExchangeRate
-from payments.domain.entities.order import Order
+from payments.domain.entities.order import Order, OrderStatus
 from payments.domain.entities.order_item import OrderItem
 from payments.domain.entities.payment import Payment
 from payments.domain.entities.payment_attempts import (
@@ -14,6 +14,7 @@ from payments.domain.exceptions import (
     CartEmptyError,
     CartNotActiveError,
     EntityNotFoundError,
+    PaymentAmountTooSmallError,
     ProductNotActiveError,
     ProductPriceNotActiveError,
 )
@@ -105,12 +106,16 @@ class CheckoutUseCase:
                 status=PaymentAttemptStatus.CREATED,
             )
             self.payment_attempts.save(payment_attempt)
-
-        payment_intent = self.payment_gateway.create_payment(
-            order,
-            order.total(),
-            order.currency,
-        )
+        try:
+            payment_intent = self.payment_gateway.create_payment(
+                order,
+                order.total(),
+                order.currency,
+            )
+        except PaymentAmountTooSmallError:
+            self.orders.delete(order)
+            self.payment_attempts.delete(payment_attempt)
+            raise
 
         with self.uow:
             payment_attempt = self.payment_attempts.get_by_id_for_update(
