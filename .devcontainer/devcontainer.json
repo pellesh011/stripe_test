@@ -15,14 +15,17 @@
     "portsAttributes": {
         "8000": {
             "label": "Django API",
-            "protocol": "http"
+            "protocol": "http",
+            "onAutoForward": "openBrowser",
+            "visibility": "public"
         },
         "5173": {
             "label": "React Frontend",
-            "protocol": "http"
+            "protocol": "http",
+            "onAutoForward": "openBrowser",
+            "visibility": "public"
         }
     },
-    
 
     "postStartCommand": "bash .devcontainer/start.sh"
 }
