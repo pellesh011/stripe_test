@@ -64,3 +64,30 @@ def test_get_by_id_loads_items(cart_repo, cart, cart_item):
     assert len(loaded.items) == 1
     assert loaded.items[0].id == cart_item.id
     assert loaded.items[0].product.name == cart_item.product.name
+
+
+@pytest.mark.django_db
+def test_get_active_cart_returns_none_when_no_active(cart_repo):
+    assert cart_repo.get_active_cart() is None
+
+
+@pytest.mark.django_db
+def test_get_active_cart_returns_latest_active(cart_repo):
+    first = Cart()
+    cart_repo.save(first)
+    second = Cart()
+    cart_repo.save(second)
+
+    assert first.id is not None
+    assert second.id is not None
+    second.status = CartStatus.CHECKOUT
+    cart_repo.save(second)
+
+    third = Cart()
+    cart_repo.save(third)
+
+    loaded = cart_repo.get_active_cart()
+
+    assert loaded is not None
+    assert loaded.id == third.id
+    assert loaded.status is CartStatus.ACTIVE

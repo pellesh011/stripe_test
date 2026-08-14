@@ -200,6 +200,6 @@ def test_order_total_with_tax_and_discount():
     )
 
     assert test_order.subtotal() == Decimal("100.00")
-    assert test_order.tax_amount() == Decimal("20.00")
+    assert test_order.tax_amount() == Decimal("18.00")
     assert test_order.discount_amount() == Decimal("10.00")
-    assert test_order.total() == Decimal("110.00")
+    assert test_order.total() == Decimal("108.00")

@@ -54,7 +54,6 @@ def test_checkout_success(
             cart.id,
             payment_provider.id,
             discount=discount.name,
-            tax_id=tax.id,
         ),
     )
 
@@ -62,16 +61,16 @@ def test_checkout_success(
     data = response.json()
     assert data["client_secret"] == "cs_test_secret"
     assert isinstance(data["order_id"], int)
-    assert data["amount"] == "11.00"
+    assert data["amount"] == "10.80"
     assert data["currency"] == "eur"
 
-    assert cart_repo.get_by_id(cart.id).status is CartStatus.CONVERTED
+    assert cart_repo.get_by_id(cart.id).status is CartStatus.CHECKOUT
 
 
 @pytest.mark.django_db
 @patch("stripe.PaymentIntent.create")
 def test_checkout_without_optional_fields(
-    mock_create, client, cart, cart_item, exchange_rate, payment_provider
+    mock_create, client, cart, cart_item, exchange_rate, tax, payment_provider
 ):
     mock_create.return_value.id = "pi_test_123"
     mock_create.return_value.client_secret = "cs_test_secret"
@@ -82,7 +81,25 @@ def test_checkout_without_optional_fields(
     data = response.json()
     assert data["client_secret"] == "cs_test_secret"
     assert isinstance(data["order_id"], int)
-    assert data["amount"] == "10.00"
+    assert data["amount"] == "12.00"
+    assert data["currency"] == "eur"
+
+
+@pytest.mark.django_db
+@patch("stripe.PaymentIntent.create")
+def test_checkout_without_provider_id_uses_default(
+    mock_create, client, cart, cart_item, exchange_rate, tax, payment_provider
+):
+    mock_create.return_value.id = "pi_test_123"
+    mock_create.return_value.client_secret = "cs_test_secret"
+    mock_create.return_value.status = "requires_payment_method"
+    response = _post(client, _payload(cart.id, None))
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["client_secret"] == "cs_test_secret"
+    assert isinstance(data["order_id"], int)
+    assert data["amount"] == "12.00"
     assert data["currency"] == "eur"
 
 
@@ -152,7 +169,7 @@ def test_checkout_inactive_cart_returns_400(
     cart,
     payment_provider,
 ):
-    cart.status = CartStatus.CHECKOUT
+    cart.status = CartStatus.CONVERTED
     cart_repo.save(cart)
 
     response = _post(client, _payload(cart.id, payment_provider.id))
@@ -166,6 +183,7 @@ def test_checkout_discount_not_found_returns_404(
     client,
     cart_item,
     exchange_rate,
+    tax,
     payment_provider,
 ):
     assert cart_item.cart is not None
@@ -183,6 +201,7 @@ def test_checkout_inactive_discount_returns_400(
     client,
     cart_item,
     exchange_rate,
+    tax,
     inactive_discount,
     payment_provider,
 ):
@@ -217,7 +236,7 @@ def test_checkout_missing_exchange_rate_returns_404(
 
 
 @pytest.mark.django_db
-def test_checkout_provider_not_found_returns_404(client, cart_item, exchange_rate):
+def test_checkout_provider_not_found_returns_404(client, cart_item, exchange_rate, tax):
     assert cart_item.cart is not None
     response = _post(client, _payload(cart_item.cart.id, 9999))
 
@@ -232,6 +251,7 @@ def test_checkout_amount_too_small_returns_400(
     client,
     cart_item,
     exchange_rate,
+    tax,
     payment_provider,
 ):
     mock_create.side_effect = stripe.InvalidRequestError(

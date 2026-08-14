@@ -53,6 +53,7 @@ from payments.infrastructure.database.repositories.product_price import (
 )
 from payments.infrastructure.database.repositories.tax import TaxRepositoryImpl
 from payments.infrastructure.database.uow import DjangoUnitOfWork
+from payments.infrastructure.services.tax_selector import DefaultTaxSelector
 from payments.infrastructure.stripe.gateway import StripePaymentGateway
 
 _CHECKOUT_ERRORS: dict[type[Exception], tuple[int, str]] = {
@@ -120,12 +121,7 @@ async def checkout(request) -> JsonResponse:
         return JsonResponse({"error": error}, status=400)
     assert cart_id is not None
 
-    provider_id, error = _parse_required_id(data, "provider_id")
-    if error is not None:
-        return JsonResponse({"error": error}, status=400)
-    assert provider_id is not None
-
-    tax_id, error = _parse_optional_int(data, "tax_id")
+    provider_id, error = _parse_optional_int(data, "provider_id")
     if error is not None:
         return JsonResponse({"error": error}, status=400)
 
@@ -155,7 +151,7 @@ async def checkout(request) -> JsonResponse:
         order_items=OrderItemRepositoryImpl(),
         exchange_rates=ExchangeRateRepositoryImpl(),
         discounts=DiscountRepositoryImpl(),
-        taxes=TaxRepositoryImpl(),
+        tax_selector=DefaultTaxSelector(TaxRepositoryImpl()),
         payments=PaymentRepositoryImpl(),
         payment_attempts=PaymentAttemptRepositoryImpl(),
         payment_providers=PaymentProviderRepositoryImpl(),
@@ -172,7 +168,6 @@ async def checkout(request) -> JsonResponse:
                 currency=currency,
                 provider_id=provider_id,
                 discount=discount,
-                tax_id=tax_id,
             )
         )
     except tuple(_CHECKOUT_ERRORS) as exc:
@@ -223,6 +218,15 @@ async def buy_in_one_click(request) -> JsonResponse:
             status=400,
         )
 
+    discount = data.get("discount")
+    if discount is not None and not isinstance(discount, str):
+        return JsonResponse(
+            {"error": "discount must be a string"},
+            status=400,
+        )
+    if isinstance(discount, str) and discount.strip() == "":
+        discount = None
+
     use_case = BuyInOneClickUseCase(
         uow=DjangoUnitOfWork(),
         carts=CartRepositoryImpl(),
@@ -233,7 +237,7 @@ async def buy_in_one_click(request) -> JsonResponse:
         order_items=OrderItemRepositoryImpl(),
         exchange_rates=ExchangeRateRepositoryImpl(),
         discounts=DiscountRepositoryImpl(),
-        taxes=TaxRepositoryImpl(),
+        tax_selector=DefaultTaxSelector(TaxRepositoryImpl()),
         payments=PaymentRepositoryImpl(),
         payment_attempts=PaymentAttemptRepositoryImpl(),
         payment_providers=PaymentProviderRepositoryImpl(),
@@ -249,6 +253,7 @@ async def buy_in_one_click(request) -> JsonResponse:
                 product_id=product_id,
                 product_price_id=product_price_id,
                 currency=currency,
+                discount=discount,
             )
         )
     except tuple(_CHECKOUT_ERRORS) as exc:
