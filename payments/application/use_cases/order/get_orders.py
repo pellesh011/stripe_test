@@ -1,4 +1,5 @@
-from payments.domain.entities.order import Order, OrderStatus
+from payments.application.dto.order import OrdersPage, PaginationDTO
+from payments.domain.entities.order import OrderStatus
 from payments.domain.repositories.order import OrderRepository
 from payments.domain.repositories.payment_attempt import PaymentAttemptRepository
 
@@ -19,8 +20,12 @@ class GetOrdersUseCase:
         self.orders = orders
         self.payment_attempts = payment_attempts
 
-    def execute(self) -> list[Order]:
-        orders = self.orders.get_all()
+    def execute(self, pagination: PaginationDTO) -> OrdersPage:
+        total = self.orders.count()
+        orders = self.orders.get_all(
+            limit=pagination.limit,
+            offset=pagination.offset,
+        )
         for order in orders:
             if order.id is None or order.status not in PAYABLE_STATUSES:
                 continue
@@ -37,4 +42,4 @@ class GetOrdersUseCase:
                 continue
             order.payment_intent = attempt.external_id
             order.client_secret = attempt.client_secret
-        return orders
+        return OrdersPage(orders=orders, total=total)

@@ -1,6 +1,7 @@
 from asgiref.sync import sync_to_async
 from django.http import JsonResponse
 
+from payments.application.dto.order import PaginationDTO
 from payments.application.use_cases.order.get_orders import GetOrdersUseCase
 from payments.domain.entities.order import Order
 from payments.infrastructure.database.repositories.order import OrderRepositoryImpl
@@ -63,6 +64,19 @@ def _serialize_order(order: Order) -> dict:
     }
 
 
+def _parse_pagination(data, parameter: str, default: int) -> int | None:
+    raw = data.get(parameter)
+    if raw is None or raw == "":
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return None
+    if value < 0:
+        return None
+    return value
+
+
 async def get_orders(request) -> JsonResponse:
     if request.method != "GET":
         return JsonResponse(
@@ -70,14 +84,27 @@ async def get_orders(request) -> JsonResponse:
             status=405,
         )
 
+    limit = _parse_pagination(request.GET, "limit", 10)
+    offset = _parse_pagination(request.GET, "offset", 0)
+    if limit is None or offset is None:
+        return JsonResponse(
+            {"error": "limit and offset must be non-negative integers"},
+            status=400,
+        )
+
     use_case = GetOrdersUseCase(
         orders=OrderRepositoryImpl(),
         payment_attempts=PaymentAttemptRepositoryImpl(),
     )
 
-    orders = await sync_to_async(
+    page = await sync_to_async(
         use_case.execute,
         thread_sensitive=True,
-    )()
+    )(PaginationDTO(limit=limit, offset=offset))
 
-    return JsonResponse({"orders": [_serialize_order(order) for order in orders]})
+    return JsonResponse(
+        {
+            "orders": [_serialize_order(order) for order in page.orders],
+            "total": page.total,
+        }
+    )
