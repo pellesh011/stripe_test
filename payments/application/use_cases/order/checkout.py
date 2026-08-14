@@ -113,8 +113,14 @@ class CheckoutUseCase:
                 order.currency,
             )
         except PaymentAmountTooSmallError:
-            self.orders.delete(order)
-            self.payment_attempts.delete(payment_attempt)
+            self.payments.delete(payment=payment)
+            for order_item in order.items:
+                self.order_items.delete(order_item=order_item)
+            self.orders.delete(order=order)
+            cart.status = CartStatus.ACTIVE
+            # TODO нужен флаг для запроса, является ли это buy-in-one-click 
+            # и удалять корзину если да
+            self.carts.save(cart=cart)
             raise
 
         with self.uow:

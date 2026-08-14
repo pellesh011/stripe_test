@@ -50,3 +50,6 @@ class PaymentRepositoryImpl(PaymentRepository):
                 currency=payment.currency.value,
                 status=payment.status.value,
             )
+
+    def delete(self, payment: Payment) -> None:
+        PaymentModel.objects.get(id=payment.id).delete()
