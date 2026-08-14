@@ -103,4 +103,5 @@ class PaymentAttemptRepositoryImpl(PaymentAttemptRepository):
             )
 
     def delete(self, payment_attempt: PaymentAttempt) -> None:
+        assert payment_attempt.id is not None
         PaymentAttemptModel.objects.get(id=payment_attempt.id).delete()

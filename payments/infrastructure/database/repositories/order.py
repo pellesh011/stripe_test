@@ -58,4 +58,5 @@ class OrderRepositoryImpl(OrderRepository):
             )
 
     def delete(self, order: Order) -> None:
+        assert order.id is not None
         OrderModel.objects.get(id=order.id).delete()
