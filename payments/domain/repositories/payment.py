@@ -12,3 +12,6 @@ class PaymentRepository(ABC):
 
     @abstractmethod
     def save(self, payment: Payment) -> None: ...
+
+    @abstractmethod
+    def delete(self, payment: Payment) -> None: ...

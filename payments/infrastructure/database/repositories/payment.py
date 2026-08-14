@@ -52,4 +52,5 @@ class PaymentRepositoryImpl(PaymentRepository):
             )
 
     def delete(self, payment: Payment) -> None:
+        assert payment.id is not None
         PaymentModel.objects.get(id=payment.id).delete()
