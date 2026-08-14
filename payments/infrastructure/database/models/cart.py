@@ -40,4 +40,5 @@ class CartItemModel(models.Model):
     )
 
     def __str__(self):
-        return f"#{self.pk}: {self.product.name} × {self.product_price.price} {self.product_price.currency}"
+        price = f"{self.product_price.price} {self.product_price.currency}"
+        return f"#{self.pk}: {self.product.name} x {price}"

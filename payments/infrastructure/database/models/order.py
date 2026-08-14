@@ -81,4 +81,4 @@ class OrderItemModel(models.Model):
     )
 
     def __str__(self):
-        return f"#{self.pk}: {self.product.name} × {self.price} {self.order.currency}"
+        return f"#{self.pk}: {self.product.name} x {self.price} {self.order.currency}"
