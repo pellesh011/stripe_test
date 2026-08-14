@@ -1,8 +1,15 @@
-export async function getOrders() {
-  const response = await fetch("/api/orders/");
+export async function getOrders({ limit = 10, offset = 0 } = {}) {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+  const response = await fetch(`/api/orders/?${params}`);
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`);
   }
   const data = await response.json();
-  return data.orders || [];
+  return {
+    orders: data.orders || [],
+    total: data.total || 0,
+  };
 }

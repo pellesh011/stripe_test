@@ -569,3 +569,20 @@ body {
 .order__pay:hover {
   background: #1e40af;
 }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.pagination__info {
+  font-size: 14px;
+  color: #52606d;
+}
+
+.pagination .button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

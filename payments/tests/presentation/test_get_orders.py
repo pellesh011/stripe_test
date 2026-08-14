@@ -2,7 +2,9 @@ import pytest
 from django.test import Client
 from django.urls import reverse
 
-from payments.domain.entities.order import OrderStatus
+from payments.domain.entities.cart import Cart
+from payments.domain.entities.exchange_rate import Currency
+from payments.domain.entities.order import Order, OrderStatus
 
 
 @pytest.fixture
@@ -15,7 +17,7 @@ def test_get_orders_returns_empty(client):
     response = client.get(reverse("order-list"))
 
     assert response.status_code == 200
-    assert response.json() == {"orders": []}
+    assert response.json() == {"orders": [], "total": 0}
 
 
 @pytest.mark.django_db
@@ -137,3 +139,83 @@ def test_post_returns_405(client):
     response = client.post(reverse("order-list"))
 
     assert response.status_code == 405
+
+
+@pytest.mark.django_db
+def test_get_orders_returns_total(client, order):
+    assert order.id is not None
+
+    response = client.get(reverse("order-list"))
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] == 1
+    assert len(data["orders"]) == 1
+
+
+@pytest.mark.django_db
+def test_get_orders_pagination_limit_and_offset(client, order_repo, cart_repo, order):
+    assert order.id is not None
+    for _ in range(4):
+        cart = Cart()
+        cart_repo.save(cart)
+        entity = Order(currency=Currency.EUR, cart=cart)
+        order_repo.save(entity)
+
+    response = client.get(
+        reverse("order-list"),
+        {"limit": 2, "offset": 2},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] == 5
+    assert len(data["orders"]) == 2
+
+
+@pytest.mark.django_db
+def test_get_orders_pagination_defaults(client, order_repo, cart_repo, order):
+    assert order.id is not None
+    for _ in range(11):
+        cart = Cart()
+        cart_repo.save(cart)
+        entity = Order(currency=Currency.EUR, cart=cart)
+        order_repo.save(entity)
+
+    response = client.get(reverse("order-list"))
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] == 12
+    assert len(data["orders"]) == 10
+
+
+@pytest.mark.django_db
+def test_get_orders_offset_beyond_total_returns_empty(client, order):
+    assert order.id is not None
+
+    response = client.get(
+        reverse("order-list"),
+        {"limit": 10, "offset": 100},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] == 1
+    assert data["orders"] == []
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"limit": "-1"},
+        {"offset": "-5"},
+        {"limit": "abc"},
+        {"offset": "1.5"},
+    ],
+)
+def test_get_orders_invalid_pagination_returns_400(client, params):
+    response = client.get(reverse("order-list"), params)
+
+    assert response.status_code == 400

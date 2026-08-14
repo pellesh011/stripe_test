@@ -200,7 +200,12 @@ export default function App() {
         />
       )}
 
-      {view === "orders" && <OrdersPage onPay={handlePayOrder} />}
+      {view === "orders" && (
+        <OrdersPage
+          onPay={handlePayOrder}
+          onBackToProducts={() => setView("products")}
+        />
+      )}
     </div>
   );
 }
