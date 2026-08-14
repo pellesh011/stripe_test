@@ -29,6 +29,7 @@ echo "Creating frontend/.env..."
 
 cat > frontend/.env <<EOF
 VITE_STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
+VITE_API_URL=https://shiny-succotash-g9wrrvx7pvphvqww-8000.app.github.dev
 EOF
 
 echo "Starting Docker Compose..."
