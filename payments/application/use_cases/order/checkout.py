@@ -14,6 +14,7 @@ from payments.domain.exceptions import (
     CartEmptyError,
     CartNotActiveError,
     EntityNotFoundError,
+    PaymentAmountTooSmallError,
     ProductNotActiveError,
     ProductPriceNotActiveError,
 )
@@ -105,12 +106,22 @@ class CheckoutUseCase:
                 status=PaymentAttemptStatus.CREATED,
             )
             self.payment_attempts.save(payment_attempt)
-
-        payment_intent = self.payment_gateway.create_payment(
-            order,
-            order.total(),
-            order.currency,
-        )
+        try:
+            payment_intent = self.payment_gateway.create_payment(
+                order,
+                order.total(),
+                order.currency,
+            )
+        except PaymentAmountTooSmallError:
+            self.payments.delete(payment=payment)
+            for order_item in order.items:
+                self.order_items.delete(order_item=order_item)
+            self.orders.delete(order=order)
+            cart.status = CartStatus.ACTIVE
+            # TODO нужен флаг для запроса, является ли это buy-in-one-click
+            # и удалять корзину если да
+            self.carts.save(cart=cart)
+            raise
 
         with self.uow:
             payment_attempt = self.payment_attempts.get_by_id_for_update(

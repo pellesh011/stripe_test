@@ -41,6 +41,12 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://stripe-test-worker.pellesh011.workers.dev",
+]
+
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Application definition
 

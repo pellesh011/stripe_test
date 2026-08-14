@@ -50,3 +50,7 @@ class PaymentRepositoryImpl(PaymentRepository):
                 currency=payment.currency.value,
                 status=payment.status.value,
             )
+
+    def delete(self, payment: Payment) -> None:
+        assert payment.id is not None
+        PaymentModel.objects.get(id=payment.id).delete()

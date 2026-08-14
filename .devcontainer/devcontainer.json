@@ -1,0 +1,28 @@
+{
+    "name": "codespace-app",
+
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:4": {
+            "moby": false
+        },
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    "forwardPorts": [
+        8000,
+        5173
+    ],
+    "portsAttributes": {
+        "8000": {
+            "label": "Django API",
+            "protocol": "http"
+        },
+        "5173": {
+            "label": "React Frontend",
+            "protocol": "http"
+        }
+    },
+
+    "postStartCommand": "bash .devcontainer/start.sh"
+}

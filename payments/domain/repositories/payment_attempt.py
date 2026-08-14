@@ -23,3 +23,6 @@ class PaymentAttemptRepository(ABC):
 
     @abstractmethod
     def save(self, payment_attempt: PaymentAttempt) -> None: ...
+
+    @abstractmethod
+    def delete(self, payment_attempt: PaymentAttempt) -> None: ...

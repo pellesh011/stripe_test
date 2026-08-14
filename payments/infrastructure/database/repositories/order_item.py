@@ -56,3 +56,7 @@ class OrderItemRepositoryImpl(OrderItemRepository):
                 exchange_rate_id=order_item.exchange_rate.id,
                 price=order_item.price,
             )
+
+    def delete(self, order_item: OrderItem) -> None:
+        assert order_item.id is not None
+        OrderItemModel.objects.get(id=order_item.id).delete()
